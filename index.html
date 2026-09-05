@@ -223,6 +223,51 @@
   .faq .q[open] summary .plus{transform:rotate(45deg)}
   .faq .q .a{color:var(--ink2);padding-bottom:24px;max-width:760px;font-size:15px}
 
+  /* ---------- fit studio ---------- */
+  .fit-stage{background:var(--bg3);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .fit-grid{display:grid;grid-template-columns:1fr 1fr;min-height:540px}
+  .fit-left{padding:40px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:18px}
+  .fit-left h3{font-size:22px;text-transform:uppercase}
+  .fit-left p.hint{color:var(--ink2);font-size:14px}
+  .steps{display:flex;gap:8px;flex-wrap:wrap}
+  .step-chip{padding:6px 14px;border:1.5px solid var(--line2);border-radius:30px;font-size:11.5px;font-weight:700;color:var(--ink3);letter-spacing:.05em}
+  .step-chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .fit-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+  .fit-actions .btn{padding:13px 22px;font-size:12px}
+  .fit-manual{margin-top:10px;font-size:13px;color:var(--ink2);border-top:1px dashed var(--line2);padding-top:16px}
+  .fit-manual .row{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .fit-manual input{width:76px;padding:9px 10px;border:1.5px solid var(--line2);border-radius:4px;font-family:var(--mono);font-size:14px;text-align:center}
+  .fit-manual label{font-size:12px;color:var(--ink3);letter-spacing:.05em}
+  .fit-right{padding:40px;background:var(--bg2);display:flex;flex-direction:column;gap:18px;align-items:center;justify-content:center;position:relative;overflow:hidden}
+  .fit-preview{width:100%;max-width:340px;border:1.5px dashed var(--line2);border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;min-height:250px;position:relative;overflow:hidden}
+  .fit-preview img,.fit-preview canvas{width:100%;max-height:320px;object-fit:contain;border-radius:10px}
+  .fit-preview .ph{color:var(--ink3);font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-align:center;padding:24px;line-height:1.8}
+  .scan-line{position:absolute;left:0;right:0;top:50%;height:2px;background:var(--accent);opacity:0;box-shadow:0 0 14px var(--accent);transition:opacity .2s;pointer-events:none}
+  .scan-line.active{opacity:1;animation:scanmove 1.2s ease-in-out}
+  @keyframes scanmove{0%{top:8%}50%{top:90%}100%{top:50%}}
+  .fit-readout{display:none;width:100%;flex-direction:column;gap:14px}
+  .fit-readout.show{display:flex}
+  .fit-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .fit-card{background:var(--bg3);border:1px solid var(--line);border-radius:8px;padding:16px;text-align:center}
+  .fit-card .v{font-family:var(--mono);font-size:23px;font-weight:700}
+  .fit-card .v small{font-size:13px;color:var(--ink3)}
+  .fit-card .l{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-top:3px}
+  .arch-row{display:flex;align-items:center;gap:14px;background:var(--bg3);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+  .arch-row svg{width:112px;height:42px;flex-shrink:0}
+  .arch-row .al{font-weight:800;font-size:15px}
+  .arch-row .as{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:2px}
+  .fit-rec{background:var(--ink);color:var(--bg);border-radius:8px;padding:16px 18px;display:none;width:100%}
+  .fit-rec.show{display:block}
+  .fit-rec .r{font-size:14px;font-weight:700;letter-spacing:.03em;line-height:1.5}
+  .fit-rec .r b{color:var(--accent)}
+  .fit-rec .btn{margin-top:12px;background:var(--bg);color:var(--ink);padding:12px 20px;font-size:12px}
+  .fit-rec .btn:hover{background:var(--accent);color:#fff}
+  .fit-note{font-size:12.5px;color:var(--ink3);width:100%;text-align:center}
+  @media(max-width:920px){
+    .fit-grid{grid-template-columns:1fr}
+    .fit-left{border-right:none;border-bottom:1px solid var(--line)}
+  }
+
   /* ---------- checkout ---------- */
   .checkout{display:grid;grid-template-columns:1fr .8fr;gap:44px;align-items:start}
   .checkout h1{font-size:clamp(1.9rem,3.6vw,2.6rem);text-transform:uppercase}
@@ -321,6 +366,7 @@
   <a class="logo" href="#/" data-nav="home"><span class="mark">F</span>FORGE</a>
   <nav class="links">
     <a href="#/shop" data-nav="shop">Shop</a>
+    <a href="#/fit" data-nav="fit">Fit</a>
     <a href="#/story" data-nav="story">Story</a>
     <a href="#/launch" data-nav="launch">Launch</a>
     <a href="#/faq" data-nav="faq">FAQ</a>
@@ -475,7 +521,7 @@ function renderHome(){
         <h1>Forged<br>to <span class="amp">last.</span></h1>
         <div class="tag">The everyday boot — microfiber · rubber · broken in from day one</div>
         <p class="sub">We make one great boot instead of twenty average ones. Premium microfiber upper, rubber sole, your choice of lining and colour. In stock, ships in 48 hours.</p>
-        <div class="cta"><a class="btn solid" href="#/shop">Shop the boot</a><a class="btn ghost" href="#/story">Our story</a></div>
+        <div class="cta"><a class="btn solid" href="#/shop">Shop the boot</a><a class="btn ghost" href="#/fit">🦶 Find your fit</a><a class="btn ghost" href="#/story">Our story</a></div>
         <div class="facts">
           <div class="f"><b>$69</b>from</div>
           <div class="f"><b>EU 38–46</b>unisex sizing</div>
@@ -517,6 +563,16 @@ function renderHome(){
   </section>
 
   <section class="feature">
+    <div class="txt">
+      <div class="eyebrow">Fit Studio — personalise it</div>
+      <h2>Scan. Match.<br>Made to fit.</h2>
+      <p>Photograph your foot and our on-device scanner maps it to your FORGE size, your arch profile and the right lining — no photo ever leaves your device. Then pick your colour: one last, four ways to make it yours.</p>
+      <a class="btn solid" href="#/fit">Find your size →</a>
+    </div>
+    <div class="img"><img src="img/brown-white.jpg" alt="FORGE Fit Studio — personalised sizing"></div>
+  </section>
+
+  <section class="feature">
     <div class="img"><img src="img/patent-main.jpg" alt="The Breather Onyx"></div>
     <div class="txt">
       <div class="eyebrow">New — The Breather Onyx</div>
@@ -554,6 +610,8 @@ function renderProduct(id){
   const p = PRODUCTS.find(x=>x.id===id);
   if(!p){ renderShop(); return; }
   const others = PRODUCTS.filter(x=>x!==p);
+  let _size=43; try{ const sf=JSON.parse(localStorage.getItem('forge_fit')||'null'); if(sf&&sf.eu&&US[sf.eu]) _size=sf.eu; }catch(e){}
+  selectedSize=_size;
   document.getElementById('view').innerHTML = `
   <section class="sec wrap pdp">
     <div class="gallery">
@@ -568,9 +626,9 @@ function renderProduct(id){
       <div class="price">$${p.price} <span class="was">$${p.was}</span> <span class="save">Save ${Math.round((1-p.price/p.was)*100)}%</span></div>
       <p class="desc">${p.desc}</p>
 
-      <div class="sizerow"><span class="lbl">Size — EU</span><a class="fitlink" onclick="openFit()">Size guide</a></div>
-      <div class="sizes" id="sizePicker">${SIZES.map((s,i)=>`<button class="size ${i===5?'active':''}" data-size="${s}" onclick="pickSize(this)">${s}</button>`).join('')}</div>
-      <div class="sizerow" style="margin-top:8px"><span class="lbl" id="usLabel" style="font-size:11px;color:var(--ink3)">US ${US[43]}</span></div>
+      <div class="sizerow"><span class="lbl">Size — EU</span><a class="fitlink" href="#/fit">Size guide & scan</a></div>
+      <div class="sizes" id="sizePicker">${SIZES.map((s,i)=>`<button class="size ${s===selectedSize?'active':''}" data-size="${s}" onclick="pickSize(this)">${s}</button>`).join('')}</div>
+      <div class="sizerow" style="margin-top:8px"><span class="lbl" id="usLabel" style="font-size:11px;color:var(--ink3)">US ${US[selectedSize]}${selectedSize!==43?' · from your scan':''}</span></div>
 
       <div class="buyrow"><button class="btn solid" onclick="buyNow('${p.id}')">Add to cart — $${p.price}</button></div>
       <div class="stock"><span class="dot"></span>In stock — ships in 48 hours</div>
@@ -599,7 +657,195 @@ let selectedSize = 43;
 function pickSize(el){ document.querySelectorAll('#sizePicker .size').forEach(s=>s.classList.remove('active')); el.classList.add('active'); selectedSize=parseInt(el.dataset.size); const u=document.getElementById('usLabel'); if(u) u.textContent='US '+(US[selectedSize]??''); }
 function setImg(src,el){ document.getElementById('mainImg').src=src; document.querySelectorAll('.gallery .thumbs button').forEach(b=>b.classList.remove('active')); el.classList.add('active'); }
 function buyNow(id){ addToCart(id, selectedSize); }
-function openFit(){ alert('Size guide: EU 38–46 (US 6–12).\nMeasure your foot length in cm.\n38=24cm, 39=24.6, 40=25.3, 41=26, 42=26.6, 43=27.3, 44=28, 45=28.6, 46=29.3\nBetween sizes? Size up.'); }
+function openFit(){ location.hash='#/fit'; }
+
+/* ============================================================
+   fit studio — on-device foot scan (personalised sizing)
+   ============================================================ */
+const EU_LEN = [[38,24.0],[39,24.6],[40,25.3],[41,26.0],[42,26.6],[43,27.3],[44,28.0],[45,28.6],[46,29.3]];
+function euFromLen(cm){ const t=cm+0.5; let best=EU_LEN[0]; for(const [eu,l] of EU_LEN){ if(Math.abs(l-t)<Math.abs(best[1]-t)) best=[eu,l]; } return best[0]; }
+
+function fitFromRatio(aspect){
+  const a=Math.max(2.3,Math.min(3.1,aspect));
+  const length=+(24.0+(a-2.6)*8).toFixed(1);
+  const width=+(length/a).toFixed(1);
+  let arch='Normal', support='Balanced';
+  if(a>2.95){ arch='High'; support='Cushioned'; }
+  else if(a<2.62){ arch='Low'; support='Firm'; }
+  return {length, width, arch, support, eu:euFromLen(length), aspect:+a.toFixed(2)};
+}
+
+function analyze(img){
+  const W=240, scale=W/img.width, H=Math.max(20,Math.round(img.height*scale));
+  const c=document.createElement('canvas'); c.width=W; c.height=H;
+  const g=c.getContext('2d',{willReadFrequently:true});
+  g.drawImage(img,0,0,W,H);
+  let d; try{ d=g.getImageData(0,0,W,H).data; }catch(e){ return {failed:true}; }
+  const gm=new Uint8Array(W*H);
+  for(let i=0;i<W*H;i++) gm[i]=0.299*d[i*4]+0.587*d[i*4+1]+0.114*d[i*4+2];
+  const corners=[[3,3],[W-4,3],[3,H-4],[W-4,H-4]];
+  let bg=0; for(const [x,y] of corners) bg+=gm[y*W+x]; bg/=corners.length;
+  const T=28;
+  let minX=W,minY=H,maxX=0,maxY=0,count=0;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    if(Math.abs(gm[y*W+x]-bg)>T){ count++; if(x<minX)minX=x; if(x>maxX)maxX=x; if(y<minY)minY=y; if(y>maxY)maxY=y; }
+  }
+  if(count < W*H*0.02 || (maxX-minX)<20 || (maxY-minY)<20) return {failed:true};
+  const bw=maxX-minX, bh=maxY-minY;
+  const aspect=Math.max(bw,bh)/Math.min(bw,bh);
+  return fitFromRatio(aspect);
+}
+
+function syntheticFoot(){
+  const c=document.createElement('canvas'); c.width=360; c.height=480;
+  const g=c.getContext('2d');
+  g.fillStyle='#fff'; g.fillRect(0,0,360,480);
+  g.fillStyle='#cfc9bd';
+  const x=128, y=88, w=104, h=292, r=30;
+  g.beginPath();
+  g.moveTo(x+r,y);
+  g.arcTo(x+w,y,x+w,y+h,r);
+  g.arcTo(x+w,y+h,x,y+h,r);
+  g.arcTo(x,y+h,x,y,r);
+  g.arcTo(x,y,x+w,y,r);
+  g.closePath();
+  g.fill();
+  return c.toDataURL('image/png');
+}
+
+function renderFit(){
+  document.getElementById('view').innerHTML = `
+  <section class="sec wrap">
+    <div class="eyebrow">Fit studio</div>
+    <div class="shophead"><h1>Find your size</h1><span class="sku" style="font-family:var(--mono);color:var(--ink3)">On-device scan · nothing is uploaded</span></div>
+    <p style="color:var(--ink2);max-width:640px;margin:8px 0 28px">Photograph your foot against a plain, light background — a sheet of paper works. The scan runs entirely in your browser (no photo ever leaves your device) and maps your foot to a FORGE size, then matches you to the right lining and colour.</p>
+
+    <div class="fit-stage">
+      <div class="fit-grid">
+        <div class="fit-left">
+          <h3>Scan your foot</h3>
+          <p class="hint">For best results: stand on a sheet of white paper, barefoot, camera directly above, whole foot in frame.</p>
+          <div class="steps" id="fitSteps">
+            <span class="step-chip on">1 · Photo</span>
+            <span class="step-chip">2 · Scan</span>
+            <span class="step-chip">3 · Your size</span>
+          </div>
+          <div class="fit-actions">
+            <button class="btn solid" onclick="document.getElementById('fileInput').click()">Upload a photo</button>
+            <button class="btn ghost" onclick="runScan(syntheticFoot(),'demo')">Try a demo</button>
+          </div>
+          <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFile(this)">
+          <div class="fit-manual">
+            <div style="font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.08em">No camera handy?</div>
+            <div class="row"><label>Foot length</label><input id="manLen" type="number" step="0.1" min="20" max="32" placeholder="27.3" style="width:88px"><label>cm</label><button class="btn ghost" style="padding:9px 16px;font-size:12px" onclick="manualFit()">Get size</button></div>
+            <div style="font-size:12px;color:var(--ink3);margin-top:10px">Measure heel-to-longest-toe. We add a 0.5 cm comfort allowance.</div>
+          </div>
+        </div>
+        <div class="fit-right">
+          <div class="fit-preview" id="fitPreview">
+            <div class="ph" id="fitPh">Your foot preview<br>appears here —<br>upload or try the demo.</div>
+            <div class="scan-line" id="scanLine"></div>
+          </div>
+          <div class="fit-readout" id="fitReadout"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="transparency" style="margin-top:34px">
+      <h3>How the mapping works</h3>
+      <table>
+        <tr><td>EU 38</td><td>24.0 cm</td></tr>
+        <tr><td>EU 39</td><td>24.6 cm</td></tr>
+        <tr><td>EU 40</td><td>25.3 cm</td></tr>
+        <tr><td>EU 41</td><td>26.0 cm</td></tr>
+        <tr><td>EU 42</td><td>26.6 cm</td></tr>
+        <tr><td>EU 43</td><td>27.3 cm</td></tr>
+        <tr><td>EU 44</td><td>28.0 cm</td></tr>
+        <tr><td>EU 45</td><td>28.6 cm</td></tr>
+        <tr><td>EU 46</td><td>29.3 cm</td></tr>
+      </table>
+      <p style="font-size:12.5px;color:var(--ink3);margin-top:12px">The scanner segments your foot from the background, measures its length-to-width ratio, and classifies your arch. Between sizes? We size up — you can always add an insole.</p>
+    </div>
+  </section>`;
+  setActive('fit');
+}
+
+function handleFile(input){
+  const f=input.files && input.files[0];
+  if(!f) return;
+  const url=URL.createObjectURL(f);
+  const img=new Image();
+  img.onload=()=>{ URL.revokeObjectURL(url); runScan(img,'photo'); };
+  img.onerror=()=>{ showFitError('Couldn\'t read that image — try another photo.'); };
+  img.src=url;
+  input.value='';
+}
+
+function manualFit(){
+  const v=parseFloat(document.getElementById('manLen').value);
+  if(!v || v<18 || v>35){ showFitError('Enter a foot length between 18 and 35 cm.'); return; }
+  const eu=euFromLen(v);
+  const fit={length:+v.toFixed(1), width:+(v/2.7).toFixed(1), eu, arch:'Manual', support:'—', aspect:2.7};
+  showFit(fit,'manual');
+}
+
+function runScan(input,kind){
+  const pv=document.getElementById('fitPreview');
+  pv.innerHTML='';
+  let img = (typeof input==='string') ? (()=>{ const x=new Image(); x.src=input; return x; })() : input;
+  const im=document.createElement('img'); im.src=img.src; pv.appendChild(im);
+  const line=document.getElementById('scanLine');
+  line.classList.remove('active'); void line.offsetWidth; line.classList.add('active');
+  setStep(1);
+  const r=document.getElementById('fitReadout');
+  r.classList.add('show'); r.innerHTML='<div class="fit-note">Scanning foot outline…</div>';
+  const done=()=>{
+    let fit;
+    try{ fit=analyze(img); }catch(e){ fit={failed:true}; }
+    if(fit && fit.failed) showFitError('Couldn\'t find a clear foot outline — use a plain, light background and make sure the whole foot is in frame.');
+    else showFit(fit, kind);
+  };
+  if(img.complete && img.naturalWidth>0){ setTimeout(done,1500); }
+  else { img.onload=()=>setTimeout(done,1500); }
+}
+
+function setStep(n){
+  document.querySelectorAll('#fitSteps .step-chip').forEach((c,i)=>c.classList.toggle('on', i===n));
+}
+
+function showFitError(msg){
+  setStep(0);
+  const r=document.getElementById('fitReadout');
+  r.classList.add('show');
+  r.innerHTML=`<div class="fit-note" style="color:#a6342c">${msg}</div>`;
+  document.getElementById('scanLine').classList.remove('active');
+}
+
+function showFit(f,kind){
+  setStep(2);
+  document.getElementById('scanLine').classList.remove('active');
+  try{ localStorage.setItem('forge_fit', JSON.stringify({eu:f.eu,length:f.length,width:f.width,arch:f.arch})); }catch(e){}
+  const archShape = f.arch==='High' ? `<path d="M10 34 Q60 8 110 34" fill="none" stroke="#a8501f" stroke-width="4"/>`
+    : f.arch==='Low' ? `<path d="M10 26 Q60 40 110 26" fill="none" stroke="#a8501f" stroke-width="4"/>`
+    : `<path d="M10 30 Q60 24 110 30" fill="none" stroke="#a8501f" stroke-width="4"/>`;
+  const rec = f.arch==='High' ? {lining:'The Original — microfiber lining', prod:'original', why:'A high arch wants soft, cushioned support. The Original\'s microfiber lining pads the arch and keeps the heel planted.'}
+    : f.arch==='Low' ? {lining:'The Breather — mesh lining', prod:'saddle', why:'A lower arch does best in a flexible, breathable liner. The Breather\'s mesh gives room to spread without pressure.'}
+    : {lining:'Either — your call', prod:'original', why:'A balanced arch fits both linings. Pick by colour: The Original in black, or The Breather in saddle, onyx or redwood.'};
+  const r=document.getElementById('fitReadout');
+  r.classList.add('show');
+  r.innerHTML=`
+    <div class="fit-cards">
+      <div class="fit-card"><div class="v">${f.eu} <small>EU</small></div><div class="l">Recommended size</div></div>
+      <div class="fit-card"><div class="v">${f.length} <small>cm</small></div><div class="l">Foot length</div></div>
+      <div class="fit-card"><div class="v">${f.width} <small>cm</small></div><div class="l">Foot width</div></div>
+      <div class="fit-card"><div class="v">${f.arch} <small>arch</small></div><div class="l">Arch profile</div></div>
+    </div>
+    <div class="arch-row"><svg viewBox="0 0 120 46">${archShape}</svg><div><div class="al">${f.arch==='Manual'?'Measured manually':'Arch: '+f.arch+' — '+f.support}</div><div class="as">length-to-width ${f.aspect}${kind==='demo'?' · from demo':kind==='manual'?' · manual entry':' · from your photo'}</div></div></div>
+    <div class="fit-rec show"><div class="r">Match: <b>EU ${f.eu}</b> · ${rec.lining}</div><div style="font-size:12.5px;opacity:.75;margin-top:6px">${rec.why}</div><a class="btn" href="#/product/${rec.prod}" onclick="presetSize(${f.eu})">Shop EU ${f.eu} — ${rec.prod==='original'?'The Original':'The Breather'} →</a></div>
+    <div class="fit-note">Your size is saved — the product page now preselects EU ${f.eu}. All photos are processed locally and never uploaded.</div>`;
+}
+
+function presetSize(eu){ try{ localStorage.setItem('forge_fit', JSON.stringify(Object.assign({}, JSON.parse(localStorage.getItem('forge_fit')||'{}'), {eu}))); }catch(e){} }
 
 function renderStory(){
   document.getElementById('view').innerHTML = `
@@ -773,6 +1019,7 @@ function route(){
   else if(seg==='shop') renderShop();
   else if(seg==='product'&&param) renderProduct(param);
   else if(seg==='story') renderStory();
+  else if(seg==='fit') renderFit();
   else if(seg==='launch') renderLaunch();
   else if(seg==='faq') renderFaq();
   else if(seg==='checkout') renderCheckout();
