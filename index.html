@@ -268,6 +268,23 @@
     .fit-left{border-right:none;border-bottom:1px solid var(--line)}
   }
 
+  /* ---------- craft detail ---------- */
+  .craft{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+  .craft .copy h2{font-size:clamp(1.9rem,3.4vw,2.7rem);text-transform:uppercase}
+  .craft .copy .intro{color:var(--ink2);margin-top:16px;font-size:15px;line-height:1.75;max-width:46ch}
+  .specials{display:grid;gap:15px;margin-top:28px}
+  .special{display:flex;gap:14px;align-items:flex-start}
+  .special .n{flex:0 0 26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:700}
+  .special h4{font-size:14px;text-transform:uppercase;letter-spacing:.02em}
+  .special p{color:var(--ink2);font-size:13.5px;margin-top:3px;line-height:1.55}
+  .shots{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .shot{background:var(--bg3);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .shot .ph{aspect-ratio:1/1;overflow:hidden;background:var(--bg2)}
+  .shot .ph img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+  .shot:hover .ph img{transform:scale(1.05)}
+  .shot .cap{padding:10px 12px;font-family:var(--mono);font-size:10.5px;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase}
+  @media(max-width:920px){.craft{grid-template-columns:1fr}}
+
   /* ---------- checkout ---------- */
   .checkout{display:grid;grid-template-columns:1fr .8fr;gap:44px;align-items:start}
   .checkout h1{font-size:clamp(1.9rem,3.6vw,2.6rem);text-transform:uppercase}
@@ -541,6 +558,28 @@ function renderHome(){
       <div class="prop"><div class="ic">🌱</div><h3>Vegan by default</h3><p>Premium microfiber, not leather. Same look, no animals — and we say so plainly.</p></div>
       <div class="prop"><div class="ic">📦</div><h3>In stock, fast</h3><p>No pre-orders. Boots ship in 48 hours from a real production line, worldwide.</p></div>
       <div class="prop"><div class="ic">💰</div><h3>Honest price</h3><p>$69–$79. We cut the middlemen and the markup, and we show you the math.</p></div>
+    </div>
+  </section>
+
+  <section class="sec wrap">
+    <div class="eyebrow">What you're buying</div>
+    <div class="craft">
+      <div class="copy">
+        <h2>The FORGE boot,<br>up close.</h2>
+        <p class="intro">FORGE is one zip-up ankle boot — a premium microfiber upper on a rubber sole — made in two linings and four colours, in unisex EU 38–46. Not a wall of SKUs, but one boot done right: honest materials, a single perfected last, and a fit we can measure before you buy.</p>
+        <div class="specials">
+          <div class="special"><div class="n">1</div><div><h4>Vegan microfiber, honestly</h4><p>Looks and feels like leather, but it's premium microfiber — water-resistant, scuff-proof, and 100% animal-free. We say so plainly.</p></div></div>
+          <div class="special"><div class="n">2</div><div><h4>One last, perfected</h4><p>Every pair is built on the same last, so a FORGE fits the same way every time. Two linings — microfiber (soft) or mesh (breathable) — change how it feels, never how it fits.</p></div></div>
+          <div class="special"><div class="n">3</div><div><h4>Rubber sole, day-one comfort</h4><p>A durable rubber sole that grips concrete and dirt, broken in from the first wear. No stiffness, no blister week.</p></div></div>
+          <div class="special"><div class="n">4</div><div><h4>Scan-to-fit, ships in 48h</h4><p>Photograph your foot and our on-device scanner maps you to the right size and lining. Then it ships in 48 hours — in stock, from a real production line.</p></div></div>
+        </div>
+      </div>
+      <div class="shots">
+        <div class="shot"><div class="ph"><img src="img/craft-upright.jpg" alt="FORGE boot silhouette" loading="lazy"></div><div class="cap">The silhouette</div></div>
+        <div class="shot"><div class="ph"><img src="img/craft-side.jpg" alt="FORGE microfiber upper" loading="lazy"></div><div class="cap">Microfiber upper</div></div>
+        <div class="shot"><div class="ph"><img src="img/craft-sole.jpg" alt="FORGE rubber sole" loading="lazy"></div><div class="cap">Rubber sole</div></div>
+        <div class="shot"><div class="ph"><img src="img/craft-angle.jpg" alt="FORGE boot detail" loading="lazy"></div><div class="cap">Every angle</div></div>
+      </div>
     </div>
   </section>
 
