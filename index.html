@@ -336,6 +336,30 @@
   .confirmed h1{font-size:clamp(2rem,4vw,3rem);text-transform:uppercase}
   .confirmed .ordernum{font-family:var(--mono);color:var(--accent);font-size:15px;letter-spacing:.1em;margin-top:14px;font-weight:700}
   .confirmed p{color:var(--ink2);max-width:440px;margin:18px auto 0}
+  /* ---------- review form (post-purchase) ---------- */
+  .reviewwrap{max-width:640px;margin:0 auto;padding:40px 20px 90px}
+  .reviewwrap h2{font-size:22px;text-transform:uppercase}
+  .reviewwrap h2 span{display:block;font-size:13px;color:var(--ink2);text-transform:none;letter-spacing:.02em;font-weight:400;margin-top:6px}
+  .revform{margin-top:24px;background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:24px}
+  .revrow{display:flex;align-items:flex-start;gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}
+  .revlbl{flex:none;width:70px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2);font-weight:700;padding-top:6px}
+  .stars{display:flex;gap:6px}
+  .star{font-size:30px;color:var(--line2);cursor:pointer;transition:.15s;line-height:1;user-select:none}
+  .star.on{color:var(--accent)}
+  .revhint{font-size:13px;color:var(--ink3);padding-top:8px}
+  .upload{display:inline-flex;align-items:center;gap:6px;padding:10px 14px;border:1.5px dashed var(--line2);border-radius:6px;color:var(--ink2);font-size:13px;cursor:pointer;transition:.15s}
+  .upload:hover{border-color:var(--accent);color:var(--accent)}
+  .upload input{display:none}
+  .revthumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  .thumb{position:relative;width:76px;height:76px;border-radius:6px;overflow:hidden;background:var(--bg2)}
+  .thumb img{width:100%;height:100%;object-fit:cover}
+  .thumb span{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .revtext{width:100%;margin-top:18px;min-height:110px;padding:14px;background:var(--bg3);border:1.5px solid var(--line2);border-radius:6px;color:var(--ink);font-size:15px;font-family:inherit;resize:vertical}
+  .revtext:focus{outline:none;border-color:var(--accent)}
+  .revform .btn{margin-top:18px;width:100%;justify-content:center}
+  .revdone{display:none;margin-top:18px;padding:14px;border:1px solid var(--good);border-radius:8px;color:var(--good);font-size:14px;font-weight:700;text-align:center}
+  .bottom a.sellerlink{color:var(--accent);font-weight:700;text-decoration:none}
+  .bottom a.sellerlink:hover{text-decoration:underline}
 
   /* ---------- cart drawer ---------- */
   .drawer{position:fixed;top:0;right:0;bottom:0;width:min(420px,100vw);z-index:80;background:var(--bg3);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;box-shadow:-10px 0 40px rgba(0,0,0,.12)}
@@ -487,6 +511,7 @@
     <div class="bottom">
       <span>© 2026 FORGE. All rights reserved.</span>
       <span class="mono">Microfiber (vegan) upper · Rubber sole · Demo storefront</span>
+      <a href="seller.html" class="sellerlink">Seller dashboard →</a>
     </div>
   </div>
 </footer>
@@ -1217,13 +1242,13 @@ function renderCheckout(){
       <div class="eyebrow">Almost there</div>
       <h1>Checkout</h1>
       <form class="form" onsubmit="placeOrder(event)">
-        <div class="field full"><label>Email</label><input type="email" required placeholder="you@example.com"></div>
-        <div class="field"><label>First name</label><input required placeholder="Alex"></div>
-        <div class="field"><label>Last name</label><input required placeholder="Nguyen"></div>
-        <div class="field full"><label>Address</label><input required placeholder="123 Foundry Street"></div>
-        <div class="field"><label>City</label><input required placeholder="Los Angeles"></div>
-        <div class="field"><label>Postal code</label><input required placeholder="90012"></div>
-        <div class="field full"><label>Country</label><input required placeholder="United States"></div>
+        <div class="field full"><label>Email</label><input name="email" type="email" required placeholder="you@example.com"></div>
+        <div class="field"><label>First name</label><input name="first" required placeholder="Alex"></div>
+        <div class="field"><label>Last name</label><input name="last" required placeholder="Nguyen"></div>
+        <div class="field full"><label>Address</label><input name="address" required placeholder="123 Foundry Street"></div>
+        <div class="field"><label>City</label><input name="city" required placeholder="Los Angeles"></div>
+        <div class="field"><label>Postal code</label><input name="zip" required placeholder="90012"></div>
+        <div class="field full"><label>Country</label><input name="country" required placeholder="United States"></div>
         <div class="field full"><label>Card number (demo)</label><input placeholder="4242 4242 4242 4242" inputmode="numeric"></div>
         <div class="field"><label>Expiry</label><input placeholder="12 / 28"></div>
         <div class="field"><label>CVC</label><input placeholder="123"></div>
@@ -1240,17 +1265,120 @@ function renderCheckout(){
   </section>`;
 }
 
+let lastOrder = null;
+let revRating = 0, revPhotos = [];
+
 function placeOrder(e){
   e.preventDefault();
+  const fd = new FormData(e.target);
   const num='FG-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,5).toUpperCase();
   const sub=cartSub(), ship=sub>=FREE_SHIP?0:SHIP, tot=sub+ship;
-  const items=cart.map(i=>`${i.name} (EU ${i.size}) ×${i.qty}`).join(', ');
+  const order = {
+    num,
+    ts: Date.now(),
+    customer: {
+      email: (fd.get('email')||'').trim(),
+      name: ((fd.get('first')||'')+' '+(fd.get('last')||'')).trim(),
+      city: (fd.get('city')||'').trim(),
+      country: (fd.get('country')||'').trim()
+    },
+    items: cart.map(i=>({id:i.id, sku:i.sku, name:i.name, size:i.size, qty:i.qty, price:i.price, img:i.img})),
+    subtotal: sub, shipping: ship, total: tot
+  };
+  let orders=[]; try{ orders=JSON.parse(localStorage.getItem('forge_orders')||'[]'); }catch(e){ orders=[]; }
+  orders.unshift(order);
+  try{ localStorage.setItem('forge_orders', JSON.stringify(orders)); }catch(e){}
   cart=[]; save(); renderCartBits();
-  document.getElementById('view').innerHTML=`<section class="sec wrap confirmed">
-    <div class="ring">✓</div><h1>Order confirmed</h1><div class="ordernum">${num}</div>
-    <p>Thanks — your order of ${items||'your items'} is in. It ships in 48 hours. You'll get tracking by email. Total: $${fmt(tot)}.</p>
-    <div class="cta" style="justify-content:center;margin-top:30px"><a class="btn solid" href="#/shop">Keep shopping</a><a class="btn ghost" href="#/">Back home</a></div></section>`;
+  lastOrder = order; revRating = 0; revPhotos = [];
+  renderOrderConfirmed(order);
   window.scrollTo(0,0);
+}
+
+function renderOrderConfirmed(order){
+  const itemsTxt = order.items.map(i=>`${i.name} (EU ${i.size}) ×${i.qty}`).join(', ');
+  document.getElementById('view').innerHTML = `
+  <section class="sec wrap confirmed">
+    <div class="ring">✓</div><h1>Order confirmed</h1><div class="ordernum">${order.num}</div>
+    <p>Thanks — your order of ${itemsTxt||'your items'} is in. It ships in 48 hours. Total: $${fmt(order.total)}.</p>
+    <div class="cta" style="justify-content:center;margin-top:30px"><a class="btn solid" href="#/shop">Keep shopping</a><a class="btn ghost" href="#/">Back home</a></div>
+  </section>
+  <section class="reviewwrap">
+    <h2>How was it?<span>Leave a review with photos — like a real marketplace.</span></h2>
+    <div class="revform" id="revForm">
+      <div class="revrow"><span class="revlbl">Rating</span>
+        <div style="flex:1">
+          <div class="stars" id="revStars">${[1,2,3,4,5].map(n=>`<span class="star" data-v="${n}" onclick="setRating(${n})">★</span>`).join('')}</div>
+          <span class="revhint" id="revHint">Tap a star</span>
+        </div>
+      </div>
+      <div class="revrow"><span class="revlbl">Photos</span>
+        <div style="flex:1">
+          <label class="upload">＋ Add photos<input type="file" accept="image/*" multiple onchange="addPhotos(this)"></label>
+          <div class="revthumbs" id="revThumbs"></div>
+        </div>
+      </div>
+      <textarea class="revtext" id="revText" placeholder="Tell others what you think — comfort, fit, quality…"></textarea>
+      <button class="btn solid" onclick="submitReview()">Post review</button>
+      <div class="revdone" id="revDone">✓ Thanks — your review is live on the seller dashboard.</div>
+    </div>
+  </section>`;
+}
+
+function setRating(n){
+  revRating=n;
+  document.querySelectorAll('#revStars .star').forEach((s,i)=>s.classList.toggle('on', i<n));
+  document.getElementById('revHint').textContent = ['','Poor','Fair','Good','Very good','Excellent'][n]||'';
+}
+
+function addPhotos(input){
+  [...input.files].forEach(f=>{
+    if(revPhotos.length>=6){ alert('Up to 6 photos per review.'); return; }
+    const rd=new FileReader();
+    rd.onload=ev=>resizeImage(ev.target.result, 480, dataUrl=>{ revPhotos.push(dataUrl); renderThumbs(); });
+    rd.readAsDataURL(f);
+  });
+  input.value='';
+}
+
+function renderThumbs(){
+  document.getElementById('revThumbs').innerHTML = revPhotos.map((p,i)=>`<div class="thumb"><img src="${p}" alt=""><span onclick="delPhoto(${i})">✕</span></div>`).join('');
+}
+
+function delPhoto(i){ revPhotos.splice(i,1); renderThumbs(); }
+
+function resizeImage(dataUrl, maxDim, cb){
+  const img=new Image();
+  img.onload=()=>{
+    let w=img.width, h=img.height;
+    const s=Math.min(1, maxDim/Math.max(w,h));
+    w=Math.round(w*s); h=Math.round(h*s);
+    const c=document.createElement('canvas'); c.width=w; c.height=h;
+    c.getContext('2d').drawImage(img,0,0,w,h);
+    cb(c.toDataURL('image/jpeg',0.72));
+  };
+  img.onerror=()=>cb(dataUrl);
+  img.src=dataUrl;
+}
+
+function submitReview(){
+  const text=(document.getElementById('revText').value||'').trim();
+  if(!revRating && !text){ alert('Leave a rating or a comment.'); return; }
+  if(!lastOrder) return;
+  let reviews=[]; try{ reviews=JSON.parse(localStorage.getItem('forge_reviews')||'[]'); }catch(e){ reviews=[]; }
+  reviews.unshift({
+    ts: Date.now(),
+    orderNum: lastOrder.num,
+    name: lastOrder.customer.name || 'Anonymous',
+    rating: revRating,
+    text,
+    photos: revPhotos.slice(),
+    products: lastOrder.items.map(i=>({id:i.id, name:i.name, size:i.size}))
+  });
+  try{ localStorage.setItem('forge_reviews', JSON.stringify(reviews)); }catch(e){ alert('Could not save photos — storage full. Try fewer photos.'); }
+  revPhotos=[]; renderThumbs();
+  document.getElementById('revText').value='';
+  document.getElementById('revDone').style.display='block';
+  const b=document.querySelector('#revForm .btn'); b.disabled=true; b.textContent='Review posted';
 }
 
 /* ============================================================

@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FORGE · Seller Dashboard</title>
+<style>
+  :root{
+    --bg:#f6f2ea; --bg2:#efe9dd; --bg3:#fbf9f4; --ink:#17150f; --ink2:#6f6757; --ink3:#a49b87;
+    --line:#e5ddcf; --line2:#d8cfbd; --accent:#a8501f; --good:#2e6b3e; --bad:#b33a2b;
+    --mono:'SF Mono',ui-monospace,'Cascadia Mono',Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  .bar{position:sticky;top:0;z-index:10;background:var(--ink);color:#f6f2ea;border-bottom:1px solid #000}
+  .bar .in{max-width:1180px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:16px}
+  .bar .logo{font-weight:800;letter-spacing:.28em;font-size:15px}
+  .bar .logo b{color:var(--accent)}
+  .bar .tag{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#b8b09f;border:1px solid #4a4438;border-radius:99px;padding:4px 10px}
+  .bar .spacer{flex:1}
+  .bar a.btn{background:var(--accent);color:#fff;text-decoration:none;font-size:12.5px;font-weight:700;padding:8px 14px;border-radius:6px;letter-spacing:.04em}
+  .bar a.btn:hover{filter:brightness(1.08)}
+  .wrap{max-width:1180px;margin:0 auto;padding:34px 24px 90px}
+
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+  .kpi{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:18px 18px 16px}
+  .kpi .l{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2);font-weight:700}
+  .kpi .v{font-family:var(--mono);font-size:26px;font-weight:800;margin-top:10px;letter-spacing:-.01em}
+  .kpi .v.sm{font-size:20px}
+  .kpi .d{font-size:11.5px;color:var(--ink3);margin-top:6px}
+  .kpi.hot{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+  .kpi.hot .v{color:var(--accent)}
+
+  .cols{display:grid;grid-template-columns:1.6fr 1fr;gap:22px;margin-top:22px;align-items:start}
+  .card{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:22px}
+  .card h3{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);font-weight:800;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+  .card h3 .n{font-family:var(--mono);font-size:11px;color:var(--ink3);font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);font-weight:700;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+  td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td.mono, .mono{font-family:var(--mono)}
+  td.num{font-family:var(--mono);text-align:right;font-weight:700;white-space:nowrap}
+  .badge{display:inline-block;font-size:10px;letter-spacing:.08em;padding:3px 8px;border-radius:99px;font-weight:700}
+  .badge.paid{background:#e4efe6;color:var(--good)}
+  .items-line{color:var(--ink2);font-size:12.5px;line-height:1.5}
+  .items-line b{color:var(--ink)}
+
+  .progrow{display:flex;align-items:center;gap:12px;padding:9px 0}
+  .progrow .nm{width:150px;font-size:13px;font-weight:600;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .progrow .bar{position:static;flex:1;height:10px;background:var(--bg2);border-radius:99px;overflow:hidden}
+  .progrow .bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+  .progrow .val{width:96px;flex:none;text-align:right;font-family:var(--mono);font-size:12px;color:var(--ink2)}
+
+  .bars7{display:flex;align-items:flex-end;gap:8px;height:150px;margin-top:6px}
+  .bars7 .b{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}
+  .bars7 .col{width:100%;max-width:38px;background:var(--accent);border-radius:5px 5px 0 0;min-height:2px;position:relative}
+  .bars7 .col:hover{filter:brightness(1.1)}
+  .bars7 .col .tip{position:absolute;top:-26px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10px;color:var(--ink);white-space:nowrap;opacity:0;transition:.15s;pointer-events:none}
+  .bars7 .col:hover .tip{opacity:1}
+  .bars7 .d{font-size:10px;color:var(--ink3);font-family:var(--mono)}
+  .legend{font-size:11.5px;color:var(--ink3);margin-top:14px}
+
+  .reviews{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}
+  .rev{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:20px}
+  .rev .hd{display:flex;align-items:center;gap:12px}
+  .ava{width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex:none}
+  .rev .who{flex:1}
+  .rev .who .nm{font-weight:700;font-size:14px}
+  .rev .who .meta{font-size:11.5px;color:var(--ink3);font-family:var(--mono);margin-top:2px}
+  .rev .stars{color:var(--accent);font-size:15px;letter-spacing:2px}
+  .rev .stars .o{color:var(--line2)}
+  .rev .txt{font-size:14px;line-height:1.65;color:var(--ink);margin-top:12px}
+  .rev .tag{display:inline-block;margin-top:10px;font-size:11px;color:var(--ink2);background:var(--bg2);padding:4px 9px;border-radius:6px}
+  .rev .ph{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .rev .ph img{width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:pointer;background:var(--bg2)}
+  .empty{padding:70px 20px;text-align:center;color:var(--ink2)}
+  .empty .big{font-size:44px;margin-bottom:14px}
+  .empty p{font-size:14px;max-width:420px;margin:0 auto;line-height:1.6}
+  .empty a{color:var(--accent);font-weight:700}
+
+  .toolbar{display:flex;gap:10px;align-items:center}
+  .toolbar button{font-family:inherit;font-size:12px;font-weight:700;padding:8px 14px;border-radius:6px;border:1px solid var(--line2);background:var(--bg3);color:var(--ink);cursor:pointer;letter-spacing:.03em}
+  .toolbar button:hover{border-color:var(--accent);color:var(--accent)}
+  .toolbar button.danger:hover{border-color:var(--bad);color:var(--bad)}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#f6f2ea;padding:12px 20px;border-radius:8px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:50}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media(max-width:980px){ .kpis{grid-template-columns:repeat(3,1fr)} .cols{grid-template-columns:1fr} .reviews{grid-template-columns:1fr} }
+  @media(max-width:560px){ .kpis{grid-template-columns:repeat(2,1fr)} }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="in">
+    <span class="logo"><b>F</b>FORGE</span>
+    <span class="tag">Seller dashboard</span>
+    <span class="spacer"></span>
+    <span id="liveDot" style="font-size:11px;color:#8f887a">—</span>
+    <a class="btn" href="index.html" target="_blank">View storefront ↗</a>
+  </div>
+</header>
+
+<div class="wrap" id="app">
+  <div class="empty"><div class="big">📊</div><p>Loading…</p></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const NS_O='forge_orders', NS_R='forge_reviews';
+  const load=k=>{ try{ const a=JSON.parse(localStorage.getItem(k)||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; } };
+
+  const money=n=>(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const dkey=ts=>{ const d=new Date(ts); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+  const todayKey=dkey(Date.now());
+  function ago(ts){ const s=Math.floor((Date.now()-ts)/1000); if(s<60) return 'just now'; if(s<3600) return Math.floor(s/60)+'m ago'; if(s<86400) return Math.floor(s/3600)+'h ago'; return Math.floor(s/86400)+'d ago'; }
+  function starsHtml(r){ let h=''; for(let i=1;i<=5;i++) h+= i<=r ? '★' : '<span class="o">★</span>'; return h; }
+
+  function render(){
+    const orders=load(NS_O), reviews=load(NS_R);
+
+    const todayOrders=orders.filter(o=>dkey(o.ts)===todayKey);
+    const todayRev=todayOrders.reduce((s,o)=>s+(o.total||0),0);
+    const totalRev=orders.reduce((s,o)=>s+(o.total||0),0);
+    const units=orders.reduce((s,o)=>s+o.items.reduce((a,i)=>a+(i.qty||0),0),0);
+    const aov=orders.length?totalRev/orders.length:0;
+    const avgRating=reviews.length?reviews.reduce((s,r)=>s+(r.rating||0),0)/reviews.length:0;
+
+    // sales by product
+    const byP={};
+    orders.forEach(o=>o.items.forEach(i=>{ const nm=i.name||'Item'; byP[nm]=byP[nm]||{units:0,rev:0}; byP[nm].units+=i.qty||0; byP[nm].rev+=(i.qty||0)*(i.price||0); }));
+    const prodRows=Object.entries(byP).sort((a,b)=>b[1].rev-a[1].rev);
+    const maxRev=prodRows.length?prodRows[0][1].rev:1;
+
+    // last 7 days
+    const days=[]; for(let i=6;i>=0;i--){ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i); days.push(d); }
+    const dayRev={}; days.forEach(d=>dayRev[dkey(d.getTime())]=0);
+    orders.forEach(o=>{ const k=dkey(o.ts); if(k in dayRev) dayRev[k]+=o.total||0; });
+    const maxDay=Math.max(1,...days.map(d=>dayRev[dkey(d.getTime())]));
+
+    if(orders.length===0 && reviews.length===0){
+      document.getElementById('app').innerHTML=`<div class="empty"><div class="big">📦</div>
+        <p><b>No orders yet.</b> This is the seller's backend — it reads every order placed on the FORGE storefront (stored locally in this browser).</p>
+        <p style="margin-top:12px">Open the <a href="index.html" target="_blank">storefront</a>, add a boot to cart and place an order — the sales will show up here instantly.</p></div>`;
+      document.getElementById('liveDot').textContent='● live (local)';
+      return;
+    }
+
+    document.getElementById('app').innerHTML=`
+      <div class="kpis">
+        <div class="kpi hot"><div class="l">Today's sales</div><div class="v">$${money(todayRev)}</div><div class="d">${todayOrders.length} order${todayOrders.length===1?'':'s'} today</div></div>
+        <div class="kpi"><div class="l">Total revenue</div><div class="v">$${money(totalRev)}</div><div class="d">all time</div></div>
+        <div class="kpi"><div class="l">Orders</div><div class="v sm">${orders.length}</div><div class="d">all time</div></div>
+        <div class="kpi"><div class="l">Avg order value</div><div class="v sm">$${money(aov)}</div><div class="d">per order</div></div>
+        <div class="kpi"><div class="l">Units sold</div><div class="v sm">${units}</div><div class="d">pairs</div></div>
+        <div class="kpi"><div class="l">Avg rating</div><div class="v sm">${reviews.length?avgRating.toFixed(1)+' ★':'—'}</div><div class="d">${reviews.length} review${reviews.length===1?'':'s'}</div></div>
+      </div>
+
+      <div class="cols">
+        <div>
+          <div class="card">
+            <h3>Recent orders <span class="n">${orders.length} total</span></h3>
+            <table>
+              <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th class="num">Total</th></tr></thead>
+              <tbody>
+                ${orders.slice(0,20).map(o=>`<tr>
+                  <td class="mono" style="white-space:nowrap">${esc(o.num)}<br><span class="badge paid">PAID</span></td>
+                  <td>${esc(o.customer&&o.customer.name)||'—'}<br><span style="color:var(--ink3);font-size:11px">${esc(o.customer&&o.customer.email)||''}</span></td>
+                  <td><div class="items-line">${o.items.map(i=>`<b>${esc(i.name)}</b> EU${i.size} ×${i.qty}`).join('<br>')}</div></td>
+                  <td class="num">$${money(o.total)}<br><span style="color:var(--ink3);font-size:11px">${ago(o.ts)}</span></td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card" style="margin-top:22px">
+            <h3>Sales by product</h3>
+            ${prodRows.map(([nm,row])=>`<div class="progrow">
+              <span class="nm">${esc(nm)}</span>
+              <span class="bar"><i style="width:${Math.max(4,(row.rev/maxRev)*100)}%"></i></span>
+              <span class="val">$${money(row.rev)} · ${row.units}pcs</span>
+            </div>`).join('')||'<p style="color:var(--ink3)">No items yet.</p>'}
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <h3>Last 7 days</h3>
+            <div class="bars7">
+              ${days.map(d=>{ const k=dkey(d.getTime()); const v=dayRev[k]; const h=Math.max(2,(v/maxDay)*100); return `
+                <div class="b">
+                  <div class="col" style="height:${h}%"><span class="tip">$${money(v)}</span></div>
+                  <span class="d">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</span>
+                </div>`; }).join('')}
+            </div>
+            <div class="legend">Peak day: <b>$${money(maxDay)}</b></div>
+          </div>
+
+          <div class="card" style="margin-top:22px">
+            <h3>Actions</h3>
+            <div class="toolbar">
+              <button onclick="refresh()">↻ Refresh</button>
+              <button class="danger" onclick="resetDemo()">Clear demo data</button>
+            </div>
+            <p style="font-size:12px;color:var(--ink3);margin-top:16px;line-height:1.6">Data is stored locally in this browser (<span class="mono">localStorage</span>) and is shared between the storefront and this dashboard on the same device — a front-end simulation of a real backend.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:22px">
+        <h3>Customer reviews <span class="n">${reviews.length} total</span></h3>
+        ${reviews.length?`<div class="reviews">${reviews.map(r=>`
+          <div class="rev">
+            <div class="hd">
+              <div class="ava">${esc((r.name||'A')[0].toUpperCase())}</div>
+              <div class="who"><div class="nm">${esc(r.name||'Anonymous')}</div><div class="meta">${esc(r.orderNum||'')} · ${ago(r.ts)}</div></div>
+              <div class="stars">${starsHtml(r.rating||0)}</div>
+            </div>
+            ${r.text?`<div class="txt">${esc(r.text)}</div>`:''}
+            <div class="tag">${(r.products||[]).map(p=>esc(p.name)).join(' · ')||'—'}</div>
+            ${(r.photos&&r.photos.length)?`<div class="ph">${r.photos.map((p,i)=>`<img src="${p}" data-full="${i}" alt="">`).join('')}</div>`:''}
+          </div>`).join('')}</div>`:`<p style="color:var(--ink3);font-size:13.5px">No reviews yet — customers can leave one after placing an order.</p>`}
+      </div>`;
+
+    document.getElementById('liveDot').textContent='● live (local)';
+  }
+
+  window.refresh=render;
+  window.resetDemo=function(){
+    if(!confirm('Clear all order & review demo data? This cannot be undone.')) return;
+    localStorage.removeItem(NS_O); localStorage.removeItem(NS_R);
+    render();
+    const t=document.getElementById('toast'); t.textContent='Demo data cleared.'; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),1800);
+  };
+
+  // live cross-tab updates (same origin)
+  window.addEventListener('storage', e=>{ if(e.key===NS_O||e.key===NS_R) render(); });
+  window.addEventListener('focus', render);
+
+  render();
+})();
+</script>
+</body>
+</html>
