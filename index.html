@@ -281,9 +281,15 @@
   .fit-rec .btn{margin-top:12px;background:var(--bg);color:var(--ink);padding:12px 20px;font-size:12px}
   .fit-rec .btn:hover{background:var(--accent);color:#fff}
   .fit-note{font-size:12.5px;color:var(--ink3);width:100%;text-align:center}
+  .fit-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:560px}
+  .fit-slot{display:flex;flex-direction:column;gap:8px;align-items:center;min-width:0}
+  .fit-slot .fit-preview{min-height:170px}
+  .slot-label{font-family:var(--mono);font-size:11px;color:var(--ink3);text-align:center;letter-spacing:.03em;line-height:1.5;min-height:1.4em}
+  .slot-label.ok{color:var(--good)}
   @media(max-width:920px){
     .fit-grid{grid-template-columns:1fr}
     .fit-left{border-right:none;border-bottom:1px solid var(--line)}
+    .fit-pair{grid-template-columns:1fr}
   }
 
   /* ---------- craft detail ---------- */
@@ -642,7 +648,7 @@ function renderHome(){
           <div class="special"><div class="n">1</div><div><h4>Vegan microfiber, honestly</h4><p>Looks and feels like leather, but it's premium microfiber — water-resistant, scuff-proof, and 100% animal-free. We say so plainly.</p></div></div>
           <div class="special"><div class="n">2</div><div><h4>One last, perfected</h4><p>Every pair is built on the same last, so a FORGE fits the same way every time. Two linings — microfiber (soft) or mesh (breathable) — change how it feels, never how it fits.</p></div></div>
           <div class="special"><div class="n">3</div><div><h4>Rubber sole, day-one comfort</h4><p>A durable rubber sole that grips concrete and dirt, broken in from the first wear. No stiffness, no blister week.</p></div></div>
-          <div class="special"><div class="n">4</div><div><h4>Scan-to-fit, ships in 48h</h4><p>Photograph your foot and our on-device scanner maps you to the right size and lining. Then it ships in 48 hours — in stock, from a real production line.</p></div></div>
+          <div class="special"><div class="n">4</div><div><h4>Scan-to-fit, ships in 48h</h4><p>Snap two photos — a top view for length and a side view for arch — and our on-device scanner maps you to the right size and lining. Then it ships in 48 hours — in stock, from a real production line.</p></div></div>
         </div>
       </div>
       <div class="shots">
@@ -685,7 +691,7 @@ function renderHome(){
     <div class="txt">
       <div class="eyebrow">Fit Studio — personalise it</div>
       <h2>Scan. Match.<br>Made to fit.</h2>
-      <p>Photograph your foot and our on-device scanner maps it to your FORGE size, your arch profile and the right lining — no photo ever leaves your device. Then pick your colour: one last, four ways to make it yours.</p>
+      <p>Snap two photos — a top view for length and a side view for arch — and our on-device scanner maps you to your FORGE size and the right lining. No photo ever leaves your device. Then pick your colour: one last, four ways to make it yours.</p>
       <a class="btn solid" href="#/fit">Find your size →</a>
     </div>
     <div class="img"><img src="img/brown-white.jpg" alt="FORGE Fit Studio — personalised sizing"></div>
@@ -807,87 +813,114 @@ function bindSpin(){
 const EU_LEN = [[38,24.0],[39,24.6],[40,25.3],[41,26.0],[42,26.6],[43,27.3],[44,28.0],[45,28.6],[46,29.3]];
 function euFromLen(cm){ const t=cm+0.5; let best=EU_LEN[0]; for(const [eu,l] of EU_LEN){ if(Math.abs(l-t)<Math.abs(best[1]-t)) best=[eu,l]; } return best[0]; }
 
-function fitFromRatio(aspect){
-  const a=Math.max(2.3,Math.min(3.1,aspect));
-  const length=+(24.0+(a-2.6)*8).toFixed(1);
-  const width=+(length/a).toFixed(1);
-  let arch='Normal', support='Balanced';
-  if(a>2.95){ arch='High'; support='Cushioned'; }
-  else if(a<2.62){ arch='Low'; support='Firm'; }
-  return {length, width, arch, support, eu:euFromLen(length), aspect:+a.toFixed(2)};
-}
+let _topImg=null,_sideImg=null,_topRes=null,_sideRes=null;
+const PAPER_CM=21.0;   // A4 short side — the physical scale reference for the top view
 
-function analyze(img){
-  const W=240, scale=W/img.width, H=Math.max(20,Math.round(img.height*scale));
+function toGray(img,W){
+  const scale=W/img.width, H=Math.max(24,Math.round(img.height*scale));
   const c=document.createElement('canvas'); c.width=W; c.height=H;
   const g=c.getContext('2d',{willReadFrequently:true});
   g.drawImage(img,0,0,W,H);
-  let d; try{ d=g.getImageData(0,0,W,H).data; }catch(e){ return {failed:true}; }
+  let d; try{ d=g.getImageData(0,0,W,H).data; }catch(e){ return null; }
   const gm=new Uint8Array(W*H);
   for(let i=0;i<W*H;i++) gm[i]=0.299*d[i*4]+0.587*d[i*4+1]+0.114*d[i*4+2];
-  const corners=[[3,3],[W-4,3],[3,H-4],[W-4,H-4]];
-  let bg=0; for(const [x,y] of corners) bg+=gm[y*W+x]; bg/=corners.length;
-  const T=28;
-  let minX=W,minY=H,maxX=0,maxY=0,count=0;
-  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-    if(Math.abs(gm[y*W+x]-bg)>T){ count++; if(x<minX)minX=x; if(x>maxX)maxX=x; if(y<minY)minY=y; if(y>maxY)maxY=y; }
-  }
-  if(count < W*H*0.02 || (maxX-minX)<20 || (maxY-minY)<20) return {failed:true};
-  const bw=maxX-minX, bh=maxY-minY;
-  const aspect=Math.max(bw,bh)/Math.min(bw,bh);
-  return fitFromRatio(aspect);
+  return {W,H,gm};
 }
 
-function syntheticFoot(){
-  const c=document.createElement('canvas'); c.width=360; c.height=480;
-  const g=c.getContext('2d');
-  g.fillStyle='#fff'; g.fillRect(0,0,360,480);
-  g.fillStyle='#cfc9bd';
-  const x=128, y=88, w=104, h=292, r=30;
-  g.beginPath();
-  g.moveTo(x+r,y);
-  g.arcTo(x+w,y,x+w,y+h,r);
-  g.arcTo(x+w,y+h,x,y+h,r);
-  g.arcTo(x,y+h,x,y,r);
-  g.arcTo(x,y,x+w,y,r);
-  g.closePath();
-  g.fill();
-  return c.toDataURL('image/png');
+function otsu(gm){
+  const hist=new Uint32Array(256), n=gm.length;
+  for(let i=0;i<n;i++) hist[gm[i]]++;
+  let sum=0; for(let i=0;i<256;i++) sum+=i*hist[i];
+  let sB=0,wB=0,best=128,bestV=0;
+  for(let i=0;i<256;i++){
+    wB+=hist[i]; if(!wB) continue;
+    const wF=n-wB; if(!wF) break;
+    sB+=i*hist[i];
+    const mB=sB/wB, mF=(sum-sB)/wF, v=wB*wF*(mB-mF)*(mB-mF);
+    if(v>bestV){ bestV=v; best=i; }
+  }
+  return best;
+}
+
+function analyzeTop(img){
+  const g=toGray(img,320); if(!g) return {failed:true,msg:'Could not read that image.'};
+  const {W,H,gm}=g, t=otsu(gm);
+  let px0=W,py0=H,px1=0,py1=0,pc=0;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++) if(gm[y*W+x]>=t){ pc++; if(x<px0)px0=x; if(x>px1)px1=x; if(y<py0)py0=y; if(y>py1)py1=y; }
+  if(pc<W*H*0.15||(px1-px0)<30||(py1-py0)<30) return {failed:true,msg:'No paper found — photograph the foot on a sheet of A4 paper on a darker floor.'};
+  let fx0=W,fy0=H,fx1=0,fy1=0,fc=0;
+  for(let y=py0;y<=py1;y++)for(let x=px0;x<=px1;x++) if(gm[y*W+x]<t){ fc++; if(x<fx0)fx0=x; if(x>fx1)fx1=x; if(y<fy0)fy0=y; if(y>fy1)fy1=y; }
+  if(fc<60) return {failed:true,msg:'Could not isolate the foot — make sure it contrasts with the paper.'};
+  const scale=PAPER_CM/Math.min(px1-px0,py1-py0);
+  const lenPx=Math.max(fx1-fx0,fy1-fy0), widPx=Math.min(fx1-fx0,fy1-fy0);
+  const length=+(lenPx*scale).toFixed(1), width=+(widPx*scale).toFixed(1);
+  if(length<17||length>34||width<5||width>15) return {failed:true,msg:'Measurement out of range — keep the whole foot on the paper, camera straight above.'};
+  return {length,width,ratio:+(length/width).toFixed(2)};
+}
+
+function analyzeSide(img){
+  const g=toGray(img,320); if(!g) return {failed:true,msg:'Could not read that image.'};
+  const {W,H,gm}=g, t=otsu(gm);
+  let cAvg=0; for(const [x,y] of [[3,3],[W-4,3],[3,H-4],[W-4,H-4]]) cAvg+=gm[y*W+x]; cAvg/=4;
+  const footDark=cAvg>t;
+  let x0=W,y0=H,x1=0,y1=0,count=0;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){ const on=footDark?(gm[y*W+x]<t):(gm[y*W+x]>=t); if(on){ count++; if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; } }
+  if(count<W*H*0.02||(x1-x0)<40||(y1-y0)<20) return {failed:true,msg:'Could not find a foot silhouette — shoot from floor level, toes to the side.'};
+  const L=x1-x0, bottom=new Int16Array(L).fill(-1);
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++) if(footDark?(gm[y*W+x]<t):(gm[y*W+x]>=t)) bottom[x-x0]=y;
+  let ground=0; for(let i=0;i<L;i++) if(bottom[i]>ground) ground=bottom[i];
+  const a0=Math.round(L*0.2), a1=Math.round(L*0.7);
+  let lift=0; for(let i=a0;i<=a1;i++) if(bottom[i]>=0&&(ground-bottom[i])>lift) lift=ground-bottom[i];
+  const archIndex=+(lift/L).toFixed(3);
+  const arch=archIndex>=0.075?'High':archIndex<=0.03?'Low':'Normal';
+  return {arch,archIndex};
 }
 
 function renderFit(){
   document.getElementById('view').innerHTML = `
   <section class="sec wrap">
     <div class="eyebrow">Fit studio</div>
-    <div class="shophead"><h1>Find your size</h1><span class="sku" style="font-family:var(--mono);color:var(--ink3)">On-device scan · nothing is uploaded</span></div>
-    <p style="color:var(--ink2);max-width:640px;margin:8px 0 28px">Photograph your foot against a plain, light background — a sheet of paper works. The scan runs entirely in your browser (no photo ever leaves your device) and maps your foot to a FORGE size, then matches you to the right lining and colour.</p>
+    <div class="shophead"><h1>Find your size</h1><span class="sku" style="font-family:var(--mono);color:var(--ink3)">On-device scan · two photos · nothing uploaded</span></div>
+    <p style="color:var(--ink2);max-width:680px;margin:8px 0 28px">Two photos get you a real size: a <b>top view</b> for length &amp; width, and a <b>side view</b> for your arch. Everything runs in your browser — no photo ever leaves your device.</p>
 
     <div class="fit-stage">
       <div class="fit-grid">
         <div class="fit-left">
           <h3>Scan your foot</h3>
-          <p class="hint">For best results: stand on a sheet of white paper, barefoot, camera directly above, whole foot in frame.</p>
+          <p class="hint"><b>Top view (俯视)</b> — stand on a sheet of A4 paper (21 cm wide = our scale reference) on a darker floor, camera straight above, whole foot + paper in frame.<br><br><b>Side view (侧视)</b> — foot sideways at floor level so the arch profile is visible.</p>
           <div class="steps" id="fitSteps">
-            <span class="step-chip on">1 · Photo</span>
+            <span class="step-chip on">1 · Photos</span>
             <span class="step-chip">2 · Scan</span>
             <span class="step-chip">3 · Your size</span>
           </div>
           <div class="fit-actions">
-            <button class="btn solid" onclick="document.getElementById('fileInput').click()">Upload a photo</button>
-            <button class="btn ghost" onclick="runScan(syntheticFoot(),'demo')">Try a demo</button>
+            <button class="btn solid" onclick="document.getElementById('topInput').click()">1 · Upload top view</button>
+            <button class="btn solid" onclick="document.getElementById('sideInput').click()">2 · Upload side view</button>
           </div>
-          <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFile(this)">
+          <div class="fit-actions">
+            <button class="btn ghost" onclick="demoScan()">Try a demo</button>
+            <button class="btn solid" id="scanBtn" onclick="finish()">Get my size →</button>
+          </div>
+          <input type="file" id="topInput" accept="image/*" style="display:none" onchange="loadPhoto(this,'top')">
+          <input type="file" id="sideInput" accept="image/*" style="display:none" onchange="loadPhoto(this,'side')">
           <div class="fit-manual">
             <div style="font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.08em">No camera handy?</div>
-            <div class="row"><label>Foot length</label><input id="manLen" type="number" step="0.1" min="20" max="32" placeholder="27.3" style="width:88px"><label>cm</label><button class="btn ghost" style="padding:9px 16px;font-size:12px" onclick="manualFit()">Get size</button></div>
+            <div class="row"><label>Foot length</label><input id="manLen" type="number" step="0.1" min="18" max="34" placeholder="27.3" style="width:88px"><label>cm</label><button class="btn ghost" style="padding:9px 16px;font-size:12px" onclick="manualFit()">Get size</button></div>
             <div style="font-size:12px;color:var(--ink3);margin-top:10px">Measure heel-to-longest-toe. We add a 0.5 cm comfort allowance.</div>
           </div>
         </div>
         <div class="fit-right">
-          <div class="fit-preview" id="fitPreview">
-            <div class="ph" id="fitPh">Your foot preview<br>appears here —<br>upload or try the demo.</div>
-            <div class="scan-line" id="scanLine"></div>
+          <div class="fit-pair">
+            <div class="fit-slot">
+              <div class="fit-preview" id="topBox"><div class="ph">Top view<br>俯视图</div></div>
+              <div class="slot-label" id="topStatus">1 · Top — waiting</div>
+            </div>
+            <div class="fit-slot">
+              <div class="fit-preview" id="sideBox"><div class="ph">Side view<br>侧视图</div></div>
+              <div class="slot-label" id="sideStatus">2 · Side — waiting</div>
+            </div>
           </div>
+          <div class="scan-line" id="scanLine"></div>
           <div class="fit-readout" id="fitReadout"></div>
         </div>
       </div>
@@ -906,49 +939,118 @@ function renderFit(){
         <tr><td>EU 45</td><td>28.6 cm</td></tr>
         <tr><td>EU 46</td><td>29.3 cm</td></tr>
       </table>
-      <p style="font-size:12.5px;color:var(--ink3);margin-top:12px">The scanner segments your foot from the background, measures its length-to-width ratio, and classifies your arch. Between sizes? We size up — you can always add an insole.</p>
+      <p style="font-size:12.5px;color:var(--ink3);margin-top:12px">The top view is measured against the A4 paper's 21 cm short side, so we read your real foot length and width in centimetres — not a guess. The side view traces the sole's silhouette to measure your arch height. We map length to an EU size (adding 0.5 cm of comfort) and adjust for width and arch. Between sizes? We size up — you can always add an insole.</p>
     </div>
   </section>`;
   setActive('fit');
+  _topImg=_sideImg=_topRes=_sideRes=null;
 }
 
-function handleFile(input){
+function loadPhoto(input,kind){
   const f=input.files && input.files[0];
   if(!f) return;
   const url=URL.createObjectURL(f);
   const img=new Image();
-  img.onload=()=>{ URL.revokeObjectURL(url); runScan(img,'photo'); };
-  img.onerror=()=>{ showFitError('Couldn\'t read that image — try another photo.'); };
+  img.onload=()=>{
+    let res;
+    try{ res = kind==='top' ? analyzeTop(img) : analyzeSide(img); }catch(e){ res={failed:true,msg:'Could not read that image.'}; }
+    if(kind==='top'){ _topImg=img; _topRes=res; }
+    else { _sideImg=img; _sideRes=res; }
+    updateSlot(kind);
+    URL.revokeObjectURL(url);
+  };
+  img.onerror=()=>{ const res={failed:true,msg:'Couldn\'t read that image — try another.'}; if(kind==='top'){_topRes=res;}else{_sideRes=res;} updateSlot(kind); };
   img.src=url;
   input.value='';
+}
+
+function updateSlot(kind){
+  const img = kind==='top'? _topImg : _sideImg;
+  const res = kind==='top'? _topRes : _sideRes;
+  const box = document.getElementById(kind==='top'?'topBox':'sideBox');
+  const st  = document.getElementById(kind==='top'?'topStatus':'sideStatus');
+  if(img){ box.innerHTML=''; box.appendChild(img); }
+  if(!res){ st.className='slot-label'; st.textContent = (kind==='top'?'1 · Top — waiting':'2 · Side — waiting'); return; }
+  if(res.failed){ st.className='slot-label'; st.innerHTML='<span style="color:#a6342c">✗ '+res.msg+'</span>'; return; }
+  st.className='slot-label ok';
+  st.textContent = kind==='top'
+    ? `1 · Top ✓ ${res.length} cm long · ${res.width} cm wide`
+    : `2 · Side ✓ ${res.arch} arch (${(res.archIndex*100).toFixed(1)}%)`;
+}
+
+function combine(top,side){
+  const base=euFromLen(top.length);
+  let adjust=0; const reasons=[];
+  if(top.ratio<2.5){ adjust=1; reasons.push('wide foot'); }
+  if(side.arch==='Low'){ adjust=1; reasons.push('low arch'); }
+  return { eu:Math.min(46,base+adjust), base, adjust, reasons, length:top.length, width:top.width, ratio:top.ratio, arch:side.arch, archIndex:side.archIndex };
+}
+
+function finish(kind){
+  setStep(1);
+  if(!_topRes || _topRes.failed){ showFitError('Upload a clear top view first (俯视图) — foot flat on A4 paper, camera straight above.'); return; }
+  if(!_sideRes || _sideRes.failed){ showFitError('Upload a clear side view (侧视图) — foot sideways at floor level so the arch is visible.'); return; }
+  const sl=document.getElementById('scanLine'); if(sl){ sl.classList.remove('active'); void sl.offsetWidth; sl.classList.add('active'); }
+  const r=document.getElementById('fitReadout');
+  r.classList.add('show'); r.innerHTML='<div class="fit-note">Measuring length &amp; arch from both photos…</div>';
+  const top=_topRes, side=_sideRes;
+  setTimeout(()=>{ showFit(combine(top,side), kind||'photo'); }, 900);
+}
+
+function whenReady(img,cb){ if(img.complete && img.naturalWidth>0){ cb(); } else { img.onload=cb; } }
+
+function demoScan(){
+  setStep(0);
+  const top=new Image(), side=new Image();
+  let n=0;
+  const go=()=>{ if(++n<2) return; _topImg=top; _sideImg=side; _topRes=analyzeTop(top); _sideRes=analyzeSide(side); updateSlot('top'); updateSlot('side'); finish('demo'); };
+  whenReady(top,go); whenReady(side,go);
+  top.src=syntheticTop(); side.src=syntheticSide();
+}
+
+function syntheticTop(){
+  const c=document.createElement('canvas'); c.width=420; c.height=594;
+  const g=c.getContext('2d');
+  g.fillStyle='#fff'; g.fillRect(0,0,420,594);
+  g.fillStyle='#cfc9bd';
+  const x=110, y=27, w=200, h=540, r=42;
+  g.beginPath();
+  g.moveTo(x+r,y);
+  g.arcTo(x+w,y,x+w,y+h,r);
+  g.arcTo(x+w,y+h,x,y+h,r);
+  g.arcTo(x,y+h,x,y,r);
+  g.arcTo(x,y,x+w,y,r);
+  g.closePath();
+  g.fill();
+  return c.toDataURL('image/png');
+}
+
+function syntheticSide(){
+  const c=document.createElement('canvas'); c.width=580; c.height=270;
+  const g=c.getContext('2d');
+  g.fillStyle='#fff'; g.fillRect(0,0,580,270);
+  g.fillStyle='#cfc9bd';
+  g.beginPath();
+  g.moveTo(22,214);
+  g.lineTo(130,214);
+  g.quadraticCurveTo(210,214,270,188);
+  g.quadraticCurveTo(330,182,390,214);
+  g.lineTo(488,214);
+  g.quadraticCurveTo(548,214,556,172);
+  g.quadraticCurveTo(556,128,492,94);
+  g.quadraticCurveTo(420,70,300,74);
+  g.quadraticCurveTo(180,78,78,102);
+  g.quadraticCurveTo(24,124,22,214);
+  g.closePath();
+  g.fill();
+  return c.toDataURL('image/png');
 }
 
 function manualFit(){
   const v=parseFloat(document.getElementById('manLen').value);
   if(!v || v<18 || v>35){ showFitError('Enter a foot length between 18 and 35 cm.'); return; }
   const eu=euFromLen(v);
-  const fit={length:+v.toFixed(1), width:+(v/2.7).toFixed(1), eu, arch:'Manual', support:'—', aspect:2.7};
-  showFit(fit,'manual');
-}
-
-function runScan(input,kind){
-  const pv=document.getElementById('fitPreview');
-  pv.innerHTML='';
-  let img = (typeof input==='string') ? (()=>{ const x=new Image(); x.src=input; return x; })() : input;
-  const im=document.createElement('img'); im.src=img.src; pv.appendChild(im);
-  const line=document.getElementById('scanLine');
-  line.classList.remove('active'); void line.offsetWidth; line.classList.add('active');
-  setStep(1);
-  const r=document.getElementById('fitReadout');
-  r.classList.add('show'); r.innerHTML='<div class="fit-note">Scanning foot outline…</div>';
-  const done=()=>{
-    let fit;
-    try{ fit=analyze(img); }catch(e){ fit={failed:true}; }
-    if(fit && fit.failed) showFitError('Couldn\'t find a clear foot outline — use a plain, light background and make sure the whole foot is in frame.');
-    else showFit(fit, kind);
-  };
-  if(img.complete && img.naturalWidth>0){ setTimeout(done,1500); }
-  else { img.onload=()=>setTimeout(done,1500); }
+  showFit({length:+v.toFixed(1), width:+(v/2.7).toFixed(1), eu, arch:'Manual', ratio:2.7}, 'manual');
 }
 
 function setStep(n){
@@ -965,7 +1067,7 @@ function showFitError(msg){
 
 function showFit(f,kind){
   setStep(2);
-  document.getElementById('scanLine').classList.remove('active');
+  const sl=document.getElementById('scanLine'); if(sl) sl.classList.remove('active');
   try{ localStorage.setItem('forge_fit', JSON.stringify({eu:f.eu,length:f.length,width:f.width,arch:f.arch})); }catch(e){}
   const archShape = f.arch==='High' ? `<path d="M10 34 Q60 8 110 34" fill="none" stroke="#a8501f" stroke-width="4"/>`
     : f.arch==='Low' ? `<path d="M10 26 Q60 40 110 26" fill="none" stroke="#a8501f" stroke-width="4"/>`
@@ -973,6 +1075,9 @@ function showFit(f,kind){
   const rec = f.arch==='High' ? {lining:'The Original — microfiber lining', prod:'original', why:'A high arch wants soft, cushioned support. The Original\'s microfiber lining pads the arch and keeps the heel planted.'}
     : f.arch==='Low' ? {lining:'The Breather — mesh lining', prod:'saddle', why:'A lower arch does best in a flexible, breathable liner. The Breather\'s mesh gives room to spread without pressure.'}
     : {lining:'Either — your call', prod:'original', why:'A balanced arch fits both linings. Pick by colour: The Original in black, or The Breather in saddle, onyx or redwood.'};
+  const adj = f.adjust>0 ? `<div style="font-size:12px;opacity:.8;margin-top:6px">Sized up from EU ${f.base} for your ${f.reasons.join(' and ')}.</div>` : '';
+  const sub = f.arch==='Manual' ? 'manual entry' : (f.archIndex!=null ? 'arch index '+(f.archIndex*100).toFixed(1)+'% · from side view' : '');
+  const src = kind==='demo' ? 'from demo' : kind==='manual' ? 'manual entry' : 'from your two photos';
   const r=document.getElementById('fitReadout');
   r.classList.add('show');
   r.innerHTML=`
@@ -982,8 +1087,8 @@ function showFit(f,kind){
       <div class="fit-card"><div class="v">${f.width} <small>cm</small></div><div class="l">Foot width</div></div>
       <div class="fit-card"><div class="v">${f.arch} <small>arch</small></div><div class="l">Arch profile</div></div>
     </div>
-    <div class="arch-row"><svg viewBox="0 0 120 46">${archShape}</svg><div><div class="al">${f.arch==='Manual'?'Measured manually':'Arch: '+f.arch+' — '+f.support}</div><div class="as">length-to-width ${f.aspect}${kind==='demo'?' · from demo':kind==='manual'?' · manual entry':' · from your photo'}</div></div></div>
-    <div class="fit-rec show"><div class="r">Match: <b>EU ${f.eu}</b> · ${rec.lining}</div><div style="font-size:12.5px;opacity:.75;margin-top:6px">${rec.why}</div><a class="btn" href="#/product/${rec.prod}" onclick="presetSize(${f.eu})">Shop EU ${f.eu} — ${rec.prod==='original'?'The Original':'The Breather'} →</a></div>
+    <div class="arch-row"><svg viewBox="0 0 120 46">${archShape}</svg><div><div class="al">${f.arch==='Manual'?'Measured manually':'Arch: '+f.arch}</div><div class="as">${sub ? sub+' · '+src : src}</div></div></div>
+    <div class="fit-rec show"><div class="r">Match: <b>EU ${f.eu}</b> · ${rec.lining}</div><div style="font-size:12.5px;opacity:.75;margin-top:6px">${rec.why}</div>${adj}<a class="btn" href="#/product/${rec.prod}" onclick="presetSize(${f.eu})">Shop EU ${f.eu} — ${rec.prod==='original'?'The Original':'The Breather'} →</a></div>
     <div class="fit-note">Your size is saved — the product page now preselects EU ${f.eu}. All photos are processed locally and never uploaded.</div>`;
 }
 
@@ -1191,7 +1296,7 @@ const CHAT_INTENTS = [
     en:"EU 38–46 (US 6–12), unisex. Runs true to size — if you're between sizes, size up and add an insole. For a guaranteed fit, use the Fit Studio to scan your foot on-device.",
     zh:"EU 38–46（US 6–12），男女同码，标准不偏码。介于两码之间建议选大一码加鞋垫。想要更准，可以用 Fit Studio 端侧扫描量脚。" },
   { p:/(scan|fit studio|measure|量脚|扫描|测脚|拍照|定制|个性化|脚长|脚宽|足弓)/i,
-    en:"Fit Studio maps your foot from a photo — length, width and arch — to your EU size and the right lining. It runs entirely on your device; the photo never leaves your phone.",
+    en:"Fit Studio takes two photos — a top view for length & width, and a side view for your arch — and maps them to your EU size and the right lining. It runs entirely on your device; nothing is uploaded.",
     zh:"Fit Studio 用一张照片测脚长、脚宽和足弓，映射出你的 EU 尺码和内里推荐。全程在你手机本地处理，照片不会上传。" },
   { p:/(ship|shipping|deliver|delivery|how long|发货|多久|快递|物流|送达|邮费|免邮)/i,
     en:"In stock, ships in 48 hours. Free shipping on orders over $100, otherwise a flat $10.",
