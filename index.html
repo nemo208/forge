@@ -453,6 +453,10 @@
   .chat-input button{width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;font-size:16px;border:none;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center}
   .chat-input button:hover{background:var(--ink)}
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<script src="forge-db.js"></script>
 </head>
 <body>
 
@@ -1285,9 +1289,7 @@ function placeOrder(e){
     items: cart.map(i=>({id:i.id, sku:i.sku, name:i.name, size:i.size, qty:i.qty, price:i.price, img:i.img})),
     subtotal: sub, shipping: ship, total: tot
   };
-  let orders=[]; try{ orders=JSON.parse(localStorage.getItem('forge_orders')||'[]'); }catch(e){ orders=[]; }
-  orders.unshift(order);
-  try{ localStorage.setItem('forge_orders', JSON.stringify(orders)); }catch(e){}
+  ForgeDB.writeOrder(order);
   cart=[]; save(); renderCartBits();
   lastOrder = order; revRating = 0; revPhotos = [];
   renderOrderConfirmed(order);
@@ -1364,8 +1366,7 @@ function submitReview(){
   const text=(document.getElementById('revText').value||'').trim();
   if(!revRating && !text){ alert('Leave a rating or a comment.'); return; }
   if(!lastOrder) return;
-  let reviews=[]; try{ reviews=JSON.parse(localStorage.getItem('forge_reviews')||'[]'); }catch(e){ reviews=[]; }
-  reviews.unshift({
+  ForgeDB.writeReview({
     ts: Date.now(),
     orderNum: lastOrder.num,
     name: lastOrder.customer.name || 'Anonymous',
@@ -1374,7 +1375,6 @@ function submitReview(){
     photos: revPhotos.slice(),
     products: lastOrder.items.map(i=>({id:i.id, name:i.name, size:i.size}))
   });
-  try{ localStorage.setItem('forge_reviews', JSON.stringify(reviews)); }catch(e){ alert('Could not save photos — storage full. Try fewer photos.'); }
   revPhotos=[]; renderThumbs();
   document.getElementById('revText').value='';
   document.getElementById('revDone').style.display='block';

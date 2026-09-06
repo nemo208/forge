@@ -77,7 +77,7 @@
   .rev .ph img{width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:pointer;background:var(--bg2)}
   .empty{padding:70px 20px;text-align:center;color:var(--ink2)}
   .empty .big{font-size:44px;margin-bottom:14px}
-  .empty p{font-size:14px;max-width:420px;margin:0 auto;line-height:1.6}
+  .empty p{font-size:14px;max-width:440px;margin:0 auto;line-height:1.6}
   .empty a{color:var(--accent);font-weight:700}
 
   .toolbar{display:flex;gap:10px;align-items:center}
@@ -86,10 +86,17 @@
   .toolbar button.danger:hover{border-color:var(--bad);color:var(--bad)}
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#f6f2ea;padding:12px 20px;border-radius:8px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:50}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .mode{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:99px}
+  .mode.fb{background:#e4efe6;color:var(--good)}
+  .mode.local{background:#f2e8d8;color:var(--accent)}
 
   @media(max-width:980px){ .kpis{grid-template-columns:repeat(3,1fr)} .cols{grid-template-columns:1fr} .reviews{grid-template-columns:1fr} }
   @media(max-width:560px){ .kpis{grid-template-columns:repeat(2,1fr)} }
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<script src="forge-db.js"></script>
 </head>
 <body>
 
@@ -98,7 +105,7 @@
     <span class="logo"><b>F</b>FORGE</span>
     <span class="tag">Seller dashboard</span>
     <span class="spacer"></span>
-    <span id="liveDot" style="font-size:11px;color:#8f887a">—</span>
+    <span class="mode" id="modeDot">● connecting…</span>
     <a class="btn" href="index.html" target="_blank">View storefront ↗</a>
   </div>
 </header>
@@ -111,139 +118,112 @@
 
 <script>
 (function(){
-  const NS_O='forge_orders', NS_R='forge_reviews';
-  const load=k=>{ try{ const a=JSON.parse(localStorage.getItem(k)||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; } };
+  var currentOrders = [], currentReviews = [];
 
-  const money=n=>(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const dkey=ts=>{ const d=new Date(ts); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
-  const todayKey=dkey(Date.now());
-  function ago(ts){ const s=Math.floor((Date.now()-ts)/1000); if(s<60) return 'just now'; if(s<3600) return Math.floor(s/60)+'m ago'; if(s<86400) return Math.floor(s/3600)+'h ago'; return Math.floor(s/86400)+'d ago'; }
-  function starsHtml(r){ let h=''; for(let i=1;i<=5;i++) h+= i<=r ? '★' : '<span class="o">★</span>'; return h; }
+  var money=function(n){ return (n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); };
+  var esc=function(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+  var dkey=function(ts){ var d=new Date(ts); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+  var todayKey=dkey(Date.now());
+  var ago=function(ts){ var s=Math.floor((Date.now()-ts)/1000); if(s<60) return 'just now'; if(s<3600) return Math.floor(s/60)+'m ago'; if(s<86400) return Math.floor(s/3600)+'h ago'; return Math.floor(s/86400)+'d ago'; };
+  var starsHtml=function(r){ var h=''; for(var i=1;i<=5;i++) h += i<=r ? '★' : '<span class="o">★</span>'; return h; };
 
-  function render(){
-    const orders=load(NS_O), reviews=load(NS_R);
+  function render(orders, reviews){
+    var fb = ForgeDB.mode === 'firebase';
+    document.getElementById('modeDot').className = 'mode ' + (fb?'fb':'local');
+    document.getElementById('modeDot').textContent = fb ? '● Live · Firebase (跨设备)' : '● Live · 本机 localStorage';
 
-    const todayOrders=orders.filter(o=>dkey(o.ts)===todayKey);
-    const todayRev=todayOrders.reduce((s,o)=>s+(o.total||0),0);
-    const totalRev=orders.reduce((s,o)=>s+(o.total||0),0);
-    const units=orders.reduce((s,o)=>s+o.items.reduce((a,i)=>a+(i.qty||0),0),0);
-    const aov=orders.length?totalRev/orders.length:0;
-    const avgRating=reviews.length?reviews.reduce((s,r)=>s+(r.rating||0),0)/reviews.length:0;
+    var todayOrders = orders.filter(function(o){ return dkey(o.ts) === todayKey; });
+    var todayRev = todayOrders.reduce(function(s,o){ return s+(o.total||0); },0);
+    var totalRev = orders.reduce(function(s,o){ return s+(o.total||0); },0);
+    var units = orders.reduce(function(s,o){ return s+o.items.reduce(function(a,i){ return a+(i.qty||0); },0); },0);
+    var aov = orders.length ? totalRev/orders.length : 0;
+    var avgRating = reviews.length ? reviews.reduce(function(s,r){ return s+(r.rating||0); },0)/reviews.length : 0;
 
-    // sales by product
-    const byP={};
-    orders.forEach(o=>o.items.forEach(i=>{ const nm=i.name||'Item'; byP[nm]=byP[nm]||{units:0,rev:0}; byP[nm].units+=i.qty||0; byP[nm].rev+=(i.qty||0)*(i.price||0); }));
-    const prodRows=Object.entries(byP).sort((a,b)=>b[1].rev-a[1].rev);
-    const maxRev=prodRows.length?prodRows[0][1].rev:1;
+    var byP={};
+    orders.forEach(function(o){ o.items.forEach(function(i){ var nm=i.name||'Item'; byP[nm]=byP[nm]||{units:0,rev:0}; byP[nm].units+=i.qty||0; byP[nm].rev+=(i.qty||0)*(i.price||0); }); });
+    var prodRows=Object.entries(byP).sort(function(a,b){ return b[1].rev-a[1].rev; });
+    var maxRev=prodRows.length?prodRows[0][1].rev:1;
 
-    // last 7 days
-    const days=[]; for(let i=6;i>=0;i--){ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i); days.push(d); }
-    const dayRev={}; days.forEach(d=>dayRev[dkey(d.getTime())]=0);
-    orders.forEach(o=>{ const k=dkey(o.ts); if(k in dayRev) dayRev[k]+=o.total||0; });
-    const maxDay=Math.max(1,...days.map(d=>dayRev[dkey(d.getTime())]));
+    var days=[]; for(var i=6;i>=0;i--){ var d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i); days.push(d); }
+    var dayRev={}; days.forEach(function(d){ dayRev[dkey(d.getTime())]=0; });
+    orders.forEach(function(o){ var k=dkey(o.ts); if(k in dayRev) dayRev[k]+=o.total||0; });
+    var maxDay=Math.max.apply(null,[1].concat(days.map(function(d){ return dayRev[dkey(d.getTime())]; })));
 
     if(orders.length===0 && reviews.length===0){
-      document.getElementById('app').innerHTML=`<div class="empty"><div class="big">📦</div>
-        <p><b>No orders yet.</b> This is the seller's backend — it reads every order placed on the FORGE storefront (stored locally in this browser).</p>
-        <p style="margin-top:12px">Open the <a href="index.html" target="_blank">storefront</a>, add a boot to cart and place an order — the sales will show up here instantly.</p></div>`;
-      document.getElementById('liveDot').textContent='● live (local)';
+      document.getElementById('app').innerHTML='<div class="empty"><div class="big">📦</div>'+
+        '<p><b>No orders yet.</b> This is the seller\'s backend — it reads every order placed on the FORGE storefront'+(fb?' (synced live from Firestore)':' (stored locally in this browser)')+'.</p>'+
+        '<p style="margin-top:12px">Open the <a href="index.html" target="_blank">storefront</a>, add a boot to cart and place an order — the sales will show up here'+(fb?' instantly, on any device.':' instantly.')+'</p></div>';
       return;
     }
 
-    document.getElementById('app').innerHTML=`
-      <div class="kpis">
-        <div class="kpi hot"><div class="l">Today's sales</div><div class="v">$${money(todayRev)}</div><div class="d">${todayOrders.length} order${todayOrders.length===1?'':'s'} today</div></div>
-        <div class="kpi"><div class="l">Total revenue</div><div class="v">$${money(totalRev)}</div><div class="d">all time</div></div>
-        <div class="kpi"><div class="l">Orders</div><div class="v sm">${orders.length}</div><div class="d">all time</div></div>
-        <div class="kpi"><div class="l">Avg order value</div><div class="v sm">$${money(aov)}</div><div class="d">per order</div></div>
-        <div class="kpi"><div class="l">Units sold</div><div class="v sm">${units}</div><div class="d">pairs</div></div>
-        <div class="kpi"><div class="l">Avg rating</div><div class="v sm">${reviews.length?avgRating.toFixed(1)+' ★':'—'}</div><div class="d">${reviews.length} review${reviews.length===1?'':'s'}</div></div>
-      </div>
+    document.getElementById('app').innerHTML=
+      '<div class="kpis">'+
+        '<div class="kpi hot"><div class="l">Today\'s sales</div><div class="v">$'+money(todayRev)+'</div><div class="d">'+todayOrders.length+' order'+(todayOrders.length===1?'':'s')+' today</div></div>'+
+        '<div class="kpi"><div class="l">Total revenue</div><div class="v">$'+money(totalRev)+'</div><div class="d">all time</div></div>'+
+        '<div class="kpi"><div class="l">Orders</div><div class="v sm">'+orders.length+'</div><div class="d">all time</div></div>'+
+        '<div class="kpi"><div class="l">Avg order value</div><div class="v sm">$'+money(aov)+'</div><div class="d">per order</div></div>'+
+        '<div class="kpi"><div class="l">Units sold</div><div class="v sm">'+units+'</div><div class="d">pairs</div></div>'+
+        '<div class="kpi"><div class="l">Avg rating</div><div class="v sm">'+(reviews.length?avgRating.toFixed(1)+' ★':'—')+'</div><div class="d">'+reviews.length+' review'+(reviews.length===1?'':'s')+'</div></div>'+
+      '</div>'+
 
-      <div class="cols">
-        <div>
-          <div class="card">
-            <h3>Recent orders <span class="n">${orders.length} total</span></h3>
-            <table>
-              <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th class="num">Total</th></tr></thead>
-              <tbody>
-                ${orders.slice(0,20).map(o=>`<tr>
-                  <td class="mono" style="white-space:nowrap">${esc(o.num)}<br><span class="badge paid">PAID</span></td>
-                  <td>${esc(o.customer&&o.customer.name)||'—'}<br><span style="color:var(--ink3);font-size:11px">${esc(o.customer&&o.customer.email)||''}</span></td>
-                  <td><div class="items-line">${o.items.map(i=>`<b>${esc(i.name)}</b> EU${i.size} ×${i.qty}`).join('<br>')}</div></td>
-                  <td class="num">$${money(o.total)}<br><span style="color:var(--ink3);font-size:11px">${ago(o.ts)}</span></td>
-                </tr>`).join('')}
-              </tbody>
-            </table>
-          </div>
+      '<div class="cols"><div>'+
+        '<div class="card"><h3>Recent orders <span class="n">'+orders.length+' total</span></h3><table>'+
+          '<thead><tr><th>Order</th><th>Customer</th><th>Items</th><th class="num">Total</th></tr></thead><tbody>'+
+          orders.slice(0,20).map(function(o){ return '<tr>'+
+            '<td class="mono" style="white-space:nowrap">'+esc(o.num)+'<br><span class="badge paid">PAID</span></td>'+
+            '<td>'+esc(o.customer&&o.customer.name)+'<br><span style="color:var(--ink3);font-size:11px">'+esc(o.customer&&o.customer.email)+'</span></td>'+
+            '<td><div class="items-line">'+o.items.map(function(i){ return '<b>'+esc(i.name)+'</b> EU'+i.size+' ×'+i.qty; }).join('<br>')+'</div></td>'+
+            '<td class="num">$'+money(o.total)+'<br><span style="color:var(--ink3);font-size:11px">'+ago(o.ts)+'</span></td>'+
+          '</tr>'; }).join('')+
+          '</tbody></table></div>'+
 
-          <div class="card" style="margin-top:22px">
-            <h3>Sales by product</h3>
-            ${prodRows.map(([nm,row])=>`<div class="progrow">
-              <span class="nm">${esc(nm)}</span>
-              <span class="bar"><i style="width:${Math.max(4,(row.rev/maxRev)*100)}%"></i></span>
-              <span class="val">$${money(row.rev)} · ${row.units}pcs</span>
-            </div>`).join('')||'<p style="color:var(--ink3)">No items yet.</p>'}
-          </div>
-        </div>
+        '<div class="card" style="margin-top:22px"><h3>Sales by product</h3>'+
+          (prodRows.map(function(row){ var nm=row[0], r=row[1]; return '<div class="progrow">'+
+            '<span class="nm">'+esc(nm)+'</span>'+
+            '<span class="bar"><i style="width:'+Math.max(4,(r.rev/maxRev)*100)+'%"></i></span>'+
+            '<span class="val">$'+money(r.rev)+' · '+r.units+'pcs</span></div>'; }).join('')||'<p style="color:var(--ink3)">No items yet.</p>')+
+        '</div>'+
+      '</div>'+
 
-        <div>
-          <div class="card">
-            <h3>Last 7 days</h3>
-            <div class="bars7">
-              ${days.map(d=>{ const k=dkey(d.getTime()); const v=dayRev[k]; const h=Math.max(2,(v/maxDay)*100); return `
-                <div class="b">
-                  <div class="col" style="height:${h}%"><span class="tip">$${money(v)}</span></div>
-                  <span class="d">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</span>
-                </div>`; }).join('')}
-            </div>
-            <div class="legend">Peak day: <b>$${money(maxDay)}</b></div>
-          </div>
+      '<div>'+
+        '<div class="card"><h3>Last 7 days</h3><div class="bars7">'+
+          days.map(function(d){ var k=dkey(d.getTime()); var v=dayRev[k]; var h=Math.max(2,(v/maxDay)*100); return '<div class="b">'+
+            '<div class="col" style="height:'+h+'%"><span class="tip">$'+money(v)+'</span></div>'+
+            '<span class="d">'+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]+'</span></div>'; }).join('')+
+          '</div><div class="legend">Peak day: <b>$'+money(maxDay)+'</b></div></div>'+
 
-          <div class="card" style="margin-top:22px">
-            <h3>Actions</h3>
-            <div class="toolbar">
-              <button onclick="refresh()">↻ Refresh</button>
-              <button class="danger" onclick="resetDemo()">Clear demo data</button>
-            </div>
-            <p style="font-size:12px;color:var(--ink3);margin-top:16px;line-height:1.6">Data is stored locally in this browser (<span class="mono">localStorage</span>) and is shared between the storefront and this dashboard on the same device — a front-end simulation of a real backend.</p>
-          </div>
-        </div>
-      </div>
+        '<div class="card" style="margin-top:22px"><h3>Actions</h3><div class="toolbar">'+
+          '<button onclick="refresh()">↻ Refresh</button>'+
+          '<button class="danger" onclick="resetDemo()">Clear demo data</button></div>'+
+          '<p style="font-size:12px;color:var(--ink3);margin-top:16px;line-height:1.6">'+(fb?'Data is stored in <b>Firestore</b> and syncs across devices in real time.':'Firebase not configured — data is stored locally in this browser (<span class="mono">localStorage</span>). Fill <span class="mono">config.js</span> with your Firebase project to go cross-device.')+'</p></div>'+
+      '</div></div>'+
 
-      <div class="card" style="margin-top:22px">
-        <h3>Customer reviews <span class="n">${reviews.length} total</span></h3>
-        ${reviews.length?`<div class="reviews">${reviews.map(r=>`
-          <div class="rev">
-            <div class="hd">
-              <div class="ava">${esc((r.name||'A')[0].toUpperCase())}</div>
-              <div class="who"><div class="nm">${esc(r.name||'Anonymous')}</div><div class="meta">${esc(r.orderNum||'')} · ${ago(r.ts)}</div></div>
-              <div class="stars">${starsHtml(r.rating||0)}</div>
-            </div>
-            ${r.text?`<div class="txt">${esc(r.text)}</div>`:''}
-            <div class="tag">${(r.products||[]).map(p=>esc(p.name)).join(' · ')||'—'}</div>
-            ${(r.photos&&r.photos.length)?`<div class="ph">${r.photos.map((p,i)=>`<img src="${p}" data-full="${i}" alt="">`).join('')}</div>`:''}
-          </div>`).join('')}</div>`:`<p style="color:var(--ink3);font-size:13.5px">No reviews yet — customers can leave one after placing an order.</p>`}
-      </div>`;
-
-    document.getElementById('liveDot').textContent='● live (local)';
+      '<div class="card" style="margin-top:22px"><h3>Customer reviews <span class="n">'+reviews.length+' total</span></h3>'+
+        (reviews.length?'<div class="reviews">'+reviews.map(function(r){ return '<div class="rev">'+
+          '<div class="hd"><div class="ava">'+esc((r.name||'A')[0].toUpperCase())+'</div>'+
+          '<div class="who"><div class="nm">'+esc(r.name||'Anonymous')+'</div><div class="meta">'+esc(r.orderNum||'')+' · '+ago(r.ts)+'</div></div>'+
+          '<div class="stars">'+starsHtml(r.rating||0)+'</div></div>'+
+          (r.text?'<div class="txt">'+esc(r.text)+'</div>':'')+
+          '<div class="tag">'+(r.products||[]).map(function(p){ return esc(p.name); }).join(' · ')+'</div>'+
+          ((r.photos&&r.photos.length)?'<div class="ph">'+r.photos.map(function(p){ return '<img src="'+p+'" alt="">'; }).join('')+'</div>':'')+
+        '</div>'; }).join('')+'</div>':'<p style="color:var(--ink3);font-size:13.5px">No reviews yet — customers can leave one after placing an order.</p>')+
+      '</div>';
   }
 
-  window.refresh=render;
-  window.resetDemo=function(){
+  window.refresh = function(){ render(currentOrders, currentReviews); };
+
+  window.resetDemo = function(){
     if(!confirm('Clear all order & review demo data? This cannot be undone.')) return;
-    localStorage.removeItem(NS_O); localStorage.removeItem(NS_R);
-    render();
-    const t=document.getElementById('toast'); t.textContent='Demo data cleared.'; t.classList.add('show');
-    setTimeout(()=>t.classList.remove('show'),1800);
+    ForgeDB.clear().then(function(){
+      var t=document.getElementById('toast'); t.textContent='Demo data cleared.'; t.classList.add('show');
+      setTimeout(function(){ t.classList.remove('show'); },1800);
+    });
   };
 
-  // live cross-tab updates (same origin)
-  window.addEventListener('storage', e=>{ if(e.key===NS_O||e.key===NS_R) render(); });
-  window.addEventListener('focus', render);
-
-  render();
+  ForgeDB.subscribe(function(orders, reviews){
+    currentOrders = orders; currentReviews = reviews;
+    render(orders, reviews);
+  });
 })();
 </script>
 </body>
