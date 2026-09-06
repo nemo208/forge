@@ -395,6 +395,33 @@
     .wrap{padding:0 18px}
     .sec{padding:52px 0}
   }
+
+  /* ---------- chat assistant ---------- */
+  .chatfab{position:fixed;right:22px;bottom:22px;z-index:72;width:58px;height:58px;border-radius:50%;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;box-shadow:0 12px 32px rgba(23,21,15,.28);transition:.25s;border:none;cursor:pointer}
+  .chatfab:hover{transform:translateY(-3px);background:var(--accent)}
+  .chatfab svg{width:26px;height:26px}
+  .chatfab .dot{position:absolute;top:3px;right:3px;width:13px;height:13px;border-radius:50%;background:#22c55e;border:2.5px solid #fff}
+  .chatpanel{position:fixed;right:22px;bottom:92px;z-index:72;width:362px;max-width:calc(100vw - 32px);height:540px;max-height:calc(100vh - 120px);background:var(--bg3);border:1px solid var(--line2);border-radius:16px;box-shadow:0 30px 70px rgba(23,21,15,.28);display:flex;flex-direction:column;overflow:hidden;opacity:0;pointer-events:none;transform:translateY(16px) scale(.97);transform-origin:bottom right;transition:.26s}
+  .chatpanel.open{opacity:1;pointer-events:auto;transform:none}
+  .chat-hd{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--ink);color:var(--bg);flex:none}
+  .chat-ava{width:40px;height:40px;border-radius:11px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px;letter-spacing:.02em}
+  .chat-title{font-weight:700;font-size:14.5px;line-height:1.25}
+  .chat-status{font-size:11px;color:#cfc7b6;display:flex;align-items:center;gap:6px;margin-top:3px}
+  .chat-status .dot{width:8px;height:8px;border-radius:50%;background:#22c55e}
+  .chat-x{margin-left:auto;background:none;border:none;color:var(--bg);font-size:20px;cursor:pointer;opacity:.65;padding:4px;line-height:1}
+  .chat-x:hover{opacity:1}
+  .chat-body{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:10px;background:var(--bg2)}
+  .msg{max-width:84%;padding:10px 13px;border-radius:14px;font-size:13.5px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
+  .msg.bot{background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px;align-self:flex-start;color:var(--ink)}
+  .msg.user{background:var(--ink);color:var(--bg);border-bottom-right-radius:4px;align-self:flex-end}
+  .chat-chips{display:flex;gap:7px;flex-wrap:wrap;padding:10px 14px;background:var(--bg3);border-top:1px solid var(--line);flex:none}
+  .chat-chips button{border:1.5px solid var(--line2);background:var(--bg3);color:var(--ink2);font-size:12px;padding:6px 12px;border-radius:30px;cursor:pointer;transition:.15s;font-weight:600}
+  .chat-chips button:hover{border-color:var(--ink);color:var(--ink)}
+  .chat-input{display:flex;gap:8px;padding:10px 14px;background:var(--bg3);border-top:1px solid var(--line);flex:none}
+  .chat-input input{flex:1;min-width:0;border:1.5px solid var(--line2);border-radius:24px;padding:10px 15px;font-size:13.5px;font-family:inherit;outline:none;color:var(--ink);background:var(--bg3)}
+  .chat-input input:focus{border-color:var(--ink)}
+  .chat-input button{width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;font-size:16px;border:none;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center}
+  .chat-input button:hover{background:var(--ink)}
 </style>
 </head>
 <body>
@@ -457,6 +484,28 @@
     </div>
   </div>
 </footer>
+
+<!-- ============ AI chat assistant ============ -->
+<button class="chatfab" id="chatFab" onclick="toggleChat()" aria-label="Chat with FORGE assistant">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  <span class="dot"></span>
+</button>
+<div class="chatpanel" id="chatPanel" role="dialog" aria-label="FORGE assistant">
+  <div class="chat-hd">
+    <div class="chat-ava">F</div>
+    <div>
+      <div class="chat-title">FORGE 客服 · Assistant</div>
+      <div class="chat-status"><span class="dot"></span>AI 客服 · instant answers</div>
+    </div>
+    <button class="chat-x" onclick="toggleChat()" aria-label="Close chat">✕</button>
+  </div>
+  <div class="chat-body" id="chatBody"></div>
+  <div class="chat-chips" id="chatChips"></div>
+  <div class="chat-input">
+    <input id="chatInput" type="text" placeholder="Ask about sizing, shipping…" onkeydown="chatKey(event)">
+    <button onclick="chatSend()" aria-label="Send">➤</button>
+  </div>
+</div>
 
 <script>
 /* ============================================================
@@ -1121,6 +1170,95 @@ function route(){
 window.addEventListener('hashchange', route);
 renderCartBits();
 route();
+
+/* ============================================================
+   FORGE — AI chat assistant (on-device, rule-based)
+   ============================================================ */
+const CHAT_INTENTS = [
+  { p:/(\b(hi|hello|hey|yo)\b|good (morning|afternoon|evening)|你好|您好|在吗|哈喽|嗨)/i,
+    en:"Hi, I'm FORGE's assistant. Ask me about sizing, materials, colours, shipping or returns — or tap a question below.",
+    zh:"你好，我是 FORGE 客服助手。可以问我尺码、材质、颜色、发货、退换货等问题，或点下面的快捷提问。" },
+  { p:/(color|colour|colourway|finish|什么颜色|颜色|配色|有哪些|款式|几款|几种)/i,
+    en:"Four colours — The Original (Black, $69), The Breather in Saddle ($69), Onyx patent ($79) and Redwood ($69). Same boot, two linings, four finishes.",
+    zh:"共 4 个配色：The Original 黑色 $69、The Breather 棕 Saddle $69、漆皮 Onyx $79、红 Redwood $69。同一双靴，两种内里、四种配色。" },
+  { p:/(price|cost|how much|多少钱|价格|价位|售价)/i,
+    en:"Boots start at $69; the Onyx patent finish is $79. We publish the sourcing math on the Story page — no hidden markup.",
+    zh:"靴子 $69 起，只有漆皮 Onyx 是 $79。我们在 Story 页公开了成本与定价，没有隐藏加价。" },
+  { p:/(material|leather|vegan|animal|什么材质|材质|真皮|皮|环保|动物)/i,
+    en:"Premium microfiber upper (vegan — no animals) on a rubber sole. Two linings: soft microfiber on The Original, breathable mesh on The Breather. Patent is a high-shine coating — still microfiber.",
+    zh:"鞋面是 premium microfiber 超纤（纯素、无动物成分），橡胶底。两种内里：The Original 是超纤内里（软），The Breather 是网纱内里（透气）。漆皮是亮面涂层，本质还是超纤。" },
+  { p:/(size|sizing|fit|true to size|尺码|码|多大|合脚|偏大|偏小|码数)/i,
+    en:"EU 38–46 (US 6–12), unisex. Runs true to size — if you're between sizes, size up and add an insole. For a guaranteed fit, use the Fit Studio to scan your foot on-device.",
+    zh:"EU 38–46（US 6–12），男女同码，标准不偏码。介于两码之间建议选大一码加鞋垫。想要更准，可以用 Fit Studio 端侧扫描量脚。" },
+  { p:/(scan|fit studio|measure|量脚|扫描|测脚|拍照|定制|个性化|脚长|脚宽|足弓)/i,
+    en:"Fit Studio maps your foot from a photo — length, width and arch — to your EU size and the right lining. It runs entirely on your device; the photo never leaves your phone.",
+    zh:"Fit Studio 用一张照片测脚长、脚宽和足弓，映射出你的 EU 尺码和内里推荐。全程在你手机本地处理，照片不会上传。" },
+  { p:/(ship|shipping|deliver|delivery|how long|发货|多久|快递|物流|送达|邮费|免邮)/i,
+    en:"In stock, ships in 48 hours. Free shipping on orders over $100, otherwise a flat $10.",
+    zh:"现货 48 小时发货。满 $100 免邮，否则统一 $10 运费。" },
+  { p:/(return|refund|exchange|退|换|退货|退款|退换)/i,
+    en:"30-day returns on unworn boots. Email hello@forge.boots and we'll sort it.",
+    zh:"未穿过的靴子 30 天内可退换。发邮件到 hello@forge.boots，我们帮你处理。" },
+  { p:/(order|buy|checkout|purchase|how do i|下单|购买|结算|怎么买|结账|加购|购物车)/i,
+    en:"Pick your colour and size on a product page, hit “Add to cart”, then checkout. Scan your foot first in the Fit Studio and the right size is pre-selected.",
+    zh:"在商品页选好颜色和尺码，点“Add to cart”加入购物车再结算。也可以先在 Fit Studio 扫描，尺码会自动预选好。" },
+  { p:/(lining|inner|内里|里衬|透气|网纱|闷不闷|臭)/i,
+    en:"Two linings: The Original uses soft microfiber; The Breather uses breathable mesh — cooler on the foot for warm days.",
+    zh:"两种内里：The Original 用软超纤，The Breather 用透气网纱，天热穿更凉快不闷脚。" },
+  { p:/(story|sourcing|factory|where|made|honest|来源|工厂|哪里做|产地|成本|透明|品牌|关于)/i,
+    en:"FORGE is built on one real production line under real SKUs (14534-H and 11295-J). We publish the cost and pricing math on the Story page — an honest boot beats a good story.",
+    zh:"FORGE 用真实产线、真实货号（14534-H / 11295-J）。我们在 Story 页公开了成本和定价——诚实比好故事更重要。" },
+  { p:/(discount|promo|code|coupon|sale|优惠|折扣|券|活动|便宜)/i,
+    en:"The shown price is our honest DTC price — no inflated MSRP, no coupon hunting. Every boot ships at the displayed price.",
+    zh:"标价就是我们的诚实 DTC 价，没有虚高原价再打折。每双都按展示价格发货，不需要凑优惠券。" },
+  { p:/(contact|email|human|agent|person|联系|邮箱|人工|转人工|电话|客服)/i,
+    en:"For anything else, email hello@forge.boots — a real person reads every message. Or check the FAQ page.",
+    zh:"其他问题发邮件到 hello@forge.boots，真人都会看。也可以先看 FAQ 页。" },
+  { p:/(thank|thanks|thx|\bok\b|\bokay\b|谢谢|感谢|好的|明白了|懂了|收到)/i,
+    en:"You're welcome! Anything else — sizing, materials, shipping — just ask. 👢",
+    zh:"不客气！尺码、材质、发货等都可以继续问我。👢" }
+];
+const CHAT_FALLBACK = {
+  en:"Good question — I don't have that one covered yet. Try asking about sizing, materials, colours, shipping or returns, or check the FAQ page.",
+  zh:"这个问题我还没覆盖到。可以试试问尺码、材质、颜色、发货或退换货，或查看 FAQ 页。"
+};
+const CHAT_QUICK = ["Sizing & fit", "Materials", "Shipping time", "Returns"];
+
+function chatReply(q){
+  const s = String(q || '').trim().toLowerCase();
+  const zh = /[\u4e00-\u9fff]/.test(q || '');
+  for (const it of CHAT_INTENTS){ if (it.p.test(s)) return zh ? it.zh : it.en; }
+  return zh ? CHAT_FALLBACK.zh : CHAT_FALLBACK.en;
+}
+function chatAdd(text, who){
+  const body = document.getElementById('chatBody');
+  const m = document.createElement('div');
+  m.className = 'msg ' + who;
+  m.textContent = text;
+  body.appendChild(m);
+  body.scrollTop = body.scrollHeight;
+}
+function chatSend(){
+  const inp = document.getElementById('chatInput');
+  const q = inp.value.trim();
+  if (!q) return;
+  chatAdd(q, 'user');
+  inp.value = '';
+  setTimeout(function(){ chatAdd(chatReply(q), 'bot'); }, 320);
+}
+function chatKey(e){ if (e.key === 'Enter') chatSend(); }
+function chatQuick(t){ chatAdd(t, 'user'); setTimeout(function(){ chatAdd(chatReply(t), 'bot'); }, 320); }
+function toggleChat(){
+  const p = document.getElementById('chatPanel');
+  p.classList.toggle('open');
+  if (p.classList.contains('open') && document.getElementById('chatInput')) document.getElementById('chatInput').focus();
+}
+function renderChatChips(){
+  const c = document.getElementById('chatChips');
+  c.innerHTML = CHAT_QUICK.map(function(t){ return '<button onclick="chatQuick(\'' + t + '\')">' + t + '</button>'; }).join('');
+}
+renderChatChips();
+chatAdd("Hi! I'm FORGE's assistant 👋 Ask me about sizing, materials, colours, shipping or returns — or tap a question below.", 'bot');
 </script>
 </body>
 </html>
