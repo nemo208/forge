@@ -117,16 +117,25 @@
   .chip:hover{color:var(--ink);border-color:var(--ink)}
   .chip.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
   .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:30px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:30px}
   .card{background:var(--bg3);border:1px solid var(--line);border-radius:6px;overflow:hidden;transition:.25s;position:relative}
   .card:hover{border-color:var(--line2);transform:translateY(-4px);box-shadow:0 10px 30px rgba(0,0,0,.07)}
   .card .ph{aspect-ratio:1/1;overflow:hidden;background:var(--bg2);position:relative}
-  .card .ph img{width:100%;height:100%;object-fit:cover}
-  .card .badge{position:absolute;top:12px;left:12px;background:var(--ink);color:var(--bg);font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:2px}
+  .card .ph img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;transition:opacity .35s,transform .6s ease}
+  .card .ph img.c1{opacity:1}
+  .card .ph img.c2{opacity:0;transform:scale(1.04)}
+  .card:hover .ph img.c1{opacity:0}
+  .card:hover .ph img.c2{opacity:1;transform:scale(1)}
+  .card .badge{position:absolute;top:12px;left:12px;background:var(--ink);color:var(--bg);font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:2px;z-index:2}
   .card .info{padding:16px 18px 18px}
   .card .info .sku{font-family:var(--mono);font-size:10.5px;color:var(--ink3);letter-spacing:.1em}
   .card .info h3{font-size:16.5px;margin:5px 0 3px;letter-spacing:0}
   .card .info .price{font-family:var(--mono);font-size:16px;font-weight:700}
-  .card .info .mat{font-size:12.5px;color:var(--ink2);margin-top:3px}
+  .card .info .cols{display:flex;align-items:center;gap:5px;margin-top:6px}
+  .card .info .cdot{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.18);box-shadow:inset 0 0 0 2px var(--bg3)}
+  .card .info .cdot.on{box-shadow:inset 0 0 0 2px var(--bg3),0 0 0 2px var(--accent)}
+  .card .info .ccount{font-family:var(--mono);font-size:10.5px;color:var(--ink3);margin-left:2px;letter-spacing:.05em}
+  .card .info .mat{font-size:12.5px;color:var(--ink2);margin-top:6px}
 
   /* ---------- feature / launch banner ---------- */
   .feature{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
@@ -140,12 +149,20 @@
   /* ---------- product (PDP) ---------- */
   .pdp{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
   .gallery{position:sticky;top:88px}
-  .gallery .main{aspect-ratio:1/1;background:var(--bg3);border:1px solid var(--line);border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .gallery .main{aspect-ratio:1/1;background:var(--bg3);border:1px solid var(--line);border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative}
   .gallery .main img{width:100%;height:100%;object-fit:cover}
-  .gallery .thumbs{display:flex;gap:10px;margin-top:12px;overflow-x:auto}
-  .gallery .thumbs button{flex:none;width:72px;height:72px;border-radius:5px;overflow:hidden;border:2px solid transparent;background:var(--bg3);padding:0}
+  .gallery .main .spin-hint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(23,21,15,.72);color:#f6f2ea;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;padding:5px 12px;border-radius:20px;pointer-events:none;opacity:0;transition:opacity .25s}
+  .gallery .main:hover .spin-hint{opacity:1}
+  .gallery .main.spinning img{transition:none}
+  .gallery .thumbs{display:flex;gap:10px;margin-top:12px;overflow-x:auto;padding-bottom:4px}
+  .gallery .thumbs button{flex:none;width:72px;height:72px;border-radius:5px;overflow:hidden;border:2px solid transparent;background:var(--bg3);padding:0;cursor:pointer}
   .gallery .thumbs button.active{border-color:var(--accent)}
-  .gallery .thumbs img{width:100%;height:100%;object-fit:cover}
+  .gallery .thumbs img{width:100%;height:100%;object-fit:cover;pointer-events:none}
+  .info .crumbs{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:10px}
+  .swatches{display:flex;gap:12px;flex-wrap:wrap}
+  .cswatch{width:44px;height:44px;border-radius:50%;background:var(--sw);border:1px solid rgba(0,0,0,.16);box-shadow:inset 0 0 0 3px var(--bg3);cursor:pointer;padding:0;position:relative;transition:transform .15s,box-shadow .15s}
+  .cswatch:hover{transform:scale(1.08)}
+  .cswatch.active{box-shadow:inset 0 0 0 3px var(--bg3),0 0 0 2px var(--accent)}
   .info h1{font-size:clamp(1.9rem,3.4vw,2.8rem);text-transform:uppercase;letter-spacing:0}
   .info .sku{font-family:var(--mono);font-size:12px;color:var(--ink3);letter-spacing:.14em;margin-top:5px}
   .info .price{font-family:var(--mono);font-size:24px;font-weight:700;margin:16px 0;display:flex;align-items:center;gap:12px}
@@ -357,6 +374,7 @@
     .prop{border-bottom:1px solid var(--line)}
     .two{grid-template-columns:1fr}
     .grid3{grid-template-columns:1fr 1fr}
+    .grid4{grid-template-columns:1fr 1fr}
     .feature{grid-template-columns:1fr}
     .pdp{grid-template-columns:1fr;gap:30px}
     .gallery{position:static}
@@ -370,6 +388,7 @@
   }
   @media(max-width:560px){
     .grid3{grid-template-columns:1fr}
+    .grid4{grid-template-columns:1fr}
     .props{grid-template-columns:1fr}
     .figures{grid-template-columns:1fr 1fr}
     .wrap{padding:0 18px}
@@ -448,32 +467,32 @@ const FREE_SHIP = 100, SHIP = 10;
 
 const PRODUCTS = [
   {
-    id:'original', sku:'14534-H', name:'The Original', color:'Black', price:69, was:98,
+    id:'original', sku:'14534-H', model:'The Original', name:'The Original', color:'Black', price:69, was:98,
     lining:'Microfiber lining', mat:'Premium microfiber · rubber sole',
-    desc:'The one. A classic black zip boot in premium microfiber with a soft microfiber lining. Rubbers sole, broken in from day one.',
-    images:['img/black-main.jpg','img/black-01.jpg','img/black-02.jpg','img/black-03.jpg','img/black-04.jpg','img/black-05.jpg','img/black-06.jpg','img/black-07.jpg','img/black-08.jpg'],
-    swatch:'#1a1a1a'
+    desc:'The one. A classic black zip boot in premium microfiber with a soft microfiber lining. Rubber sole, broken in from day one.',
+    images:['img/black-main.jpg','img/black-01.jpg','img/black-02.jpg','img/black-03.jpg','img/black-04.jpg','img/black-05.jpg','img/black-06.jpg','img/black-07.jpg','img/black-08.jpg','img/black-09.jpg','img/black-10.jpg','img/black-11.jpg','img/black-12.jpg','img/black-13.jpg','img/black-14.jpg'],
+    swatch:'#1a1a1a', swatchName:'Black'
   },
   {
-    id:'saddle', sku:'11295-J', name:'The Breather — Saddle', color:'Brown', price:69, was:98,
+    id:'saddle', sku:'11295-J', model:'The Breather', name:'The Breather — Saddle', color:'Brown', price:69, was:98,
     lining:'Breathable mesh lining', mat:'Premium microfiber · rubber sole',
     desc:'The Breather in a warm saddle brown. Breathable mesh lining keeps your feet cool all season — same last, same sole.',
-    images:['img/brown-main.jpg','img/brown-02.jpg','img/brown-white.jpg','img/brown-white2.jpg','img/brown-white3.jpg'],
-    swatch:'#6b4a2b'
+    images:['img/brown-main.jpg','img/brown-02.jpg','img/brown-white.jpg','img/brown-white2.jpg','img/brown-white3.jpg','img/brown-03.jpg','img/brown-04.jpg','img/brown-05.jpg','img/brown-06.jpg','img/brown-07.jpg','img/brown-08.jpg','img/brown-09.jpg','img/brown-10.jpg','img/brown-11.jpg','img/brown-12.jpg'],
+    swatch:'#6b4a2b', swatchName:'Saddle'
   },
   {
-    id:'onyx', sku:'11295-J', name:'The Breather — Onyx', color:'Patent', price:79, was:108,
+    id:'onyx', sku:'11295-J', model:'The Breather', name:'The Breather — Onyx', color:'Patent', price:79, was:108,
     lining:'Breathable mesh lining', mat:'High-shine patent microfiber · rubber sole',
     desc:'A high-shine patent finish that dresses up or down. Mesh lining, rubber sole — the Breather, in its loudest form.',
-    images:['img/patent-main.jpg'],
-    swatch:'#0e0e0e'
+    images:['img/patent-main.jpg','img/patent-02.jpg','img/patent-03.jpg','img/patent-04.jpg','img/patent-05.jpg','img/patent-06.jpg','img/patent-07.jpg','img/patent-08.jpg','img/patent-09.jpg','img/patent-10.jpg','img/patent-11.jpg','img/patent-12.jpg','img/patent-13.jpg','img/patent-14.jpg','img/patent-15.jpg'],
+    swatch:'#0e0e0e', swatchName:'Onyx'
   },
   {
-    id:'redwood', sku:'11295-J', name:'The Breather — Redwood', color:'Red', price:69, was:98,
+    id:'redwood', sku:'11295-J', model:'The Breather', name:'The Breather — Redwood', color:'Red', price:69, was:98,
     lining:'Breathable mesh lining', mat:'Premium microfiber · rubber sole',
     desc:'A statement red for the days you want the boot to lead. Mesh-lined, rubber-soled, same FORGE last.',
-    images:['img/red-main.jpg'],
-    swatch:'#a6342c'
+    images:['img/red-main.jpg','img/red-02.jpg','img/red-03.jpg','img/red-04.jpg','img/red-05.jpg','img/red-06.jpg','img/red-07.jpg','img/red-08.jpg','img/red-09.jpg','img/red-10.jpg','img/red-11.jpg','img/red-12.jpg','img/red-13.jpg','img/red-14.jpg','img/red-15.jpg'],
+    swatch:'#a6342c', swatchName:'Redwood'
   },
 ];
 
@@ -522,9 +541,11 @@ function closeCart(){ document.getElementById('drawer').classList.remove('open')
    views
    ============================================================ */
 function productCard(p){
+  const second = p.images[1] || p.images[0];
+  const dots = PRODUCTS.map(x=>`<span class="cdot ${x.id===p.id?'on':''}" style="background:${x.swatch}" title="${x.color}"></span>`).join('');
   return `<a class="card" href="#/product/${p.id}">
-    <div class="ph"><img src="${p.images[0]}" alt="${p.name}" loading="lazy">${p.id==='onyx'?'<span class="badge">Premium</span>':''}</div>
-    <div class="info"><div class="sku">${p.sku} · ${p.color}</div><h3>${p.name}</h3><div class="price">$${p.price}</div><div class="mat">${p.mat}</div></div>
+    <div class="ph"><img class="c1" src="${p.images[0]}" alt="${p.name}" loading="lazy"><img class="c2" src="${second}" alt="" loading="lazy">${p.id==='onyx'?'<span class="badge">Premium</span>':''}</div>
+    <div class="info"><div class="sku">${p.sku} · ${p.color}</div><h3>${p.name}</h3><div class="price">$${p.price}</div><div class="cols">${dots}<span class="ccount">${PRODUCTS.length} colours</span></div><div class="mat">${p.mat}</div></div>
   </a>`;
 }
 
@@ -601,6 +622,15 @@ function renderHome(){
     </div>
   </section>
 
+  <section class="sec wrap">
+    <div class="eyebrow">All colourways</div>
+    <div class="shophead">
+      <h2 style="font-size:clamp(1.9rem,3.6vw,2.9rem);text-transform:uppercase">One boot, four ways</h2>
+      <a class="btn ghost" href="#/shop">View all →</a>
+    </div>
+    <div class="grid4">${PRODUCTS.map(productCard).join('')}</div>
+  </section>
+
   <section class="feature">
     <div class="txt">
       <div class="eyebrow">Fit Studio — personalise it</div>
@@ -649,21 +679,27 @@ function renderProduct(id){
   const p = PRODUCTS.find(x=>x.id===id);
   if(!p){ renderShop(); return; }
   const others = PRODUCTS.filter(x=>x!==p);
+  curProduct = p; curIdx = 0;
   let _size=43; try{ const sf=JSON.parse(localStorage.getItem('forge_fit')||'null'); if(sf&&sf.eu&&US[sf.eu]) _size=sf.eu; }catch(e){}
   selectedSize=_size;
+  const swatches = PRODUCTS.map(x=>`<button class="cswatch ${x.id===p.id?'active':''}" onclick="switchColour('${x.id}')" style="--sw:${x.swatch}" title="${x.color} — $${x.price}"></button>`).join('');
   document.getElementById('view').innerHTML = `
   <section class="sec wrap pdp">
     <div class="gallery">
-      <div class="main"><img src="${p.images[0]}" alt="${p.name}" id="mainImg"></div>
+      <div class="main" id="spin"><img src="${p.images[0]}" alt="${p.name}" id="mainImg"><span class="spin-hint">↔ Drag to spin</span></div>
       <div class="thumbs">
-        ${p.images.map((im,i)=>`<button class="${i===0?'active':''}" onclick="setImg('${im}',this)"><img src="${im}" alt=""></button>`).join('')}
+        ${p.images.map((im,i)=>`<button class="${i===0?'active':''}" data-i="${i}" onclick="setImg(${i},this)"><img src="${im}" alt="" loading="lazy"></button>`).join('')}
       </div>
     </div>
     <div class="info">
+      <div class="crumbs">${p.model} · ${p.sku}</div>
       <h1>${p.name}</h1>
       <div class="sku">SKU ${p.sku} · ${p.color} · ${p.lining}</div>
       <div class="price">$${p.price} <span class="was">$${p.was}</span> <span class="save">Save ${Math.round((1-p.price/p.was)*100)}%</span></div>
       <p class="desc">${p.desc}</p>
+
+      <div class="sizerow"><span class="lbl">Colour — ${p.swatchName}</span><span class="fitlink">${PRODUCTS.length} colourways</span></div>
+      <div class="swatches">${swatches}</div>
 
       <div class="sizerow"><span class="lbl">Size — EU</span><a class="fitlink" href="#/fit">Size guide & scan</a></div>
       <div class="sizes" id="sizePicker">${SIZES.map((s,i)=>`<button class="size ${s===selectedSize?'active':''}" data-size="${s}" onclick="pickSize(this)">${s}</button>`).join('')}</div>
@@ -691,12 +727,29 @@ function renderProduct(id){
   </section>
   `;
   setActive('shop');
+  bindSpin();
 }
 let selectedSize = 43;
+let curProduct = null, curIdx = 0;
 function pickSize(el){ document.querySelectorAll('#sizePicker .size').forEach(s=>s.classList.remove('active')); el.classList.add('active'); selectedSize=parseInt(el.dataset.size); const u=document.getElementById('usLabel'); if(u) u.textContent='US '+(US[selectedSize]??''); }
-function setImg(src,el){ document.getElementById('mainImg').src=src; document.querySelectorAll('.gallery .thumbs button').forEach(b=>b.classList.remove('active')); el.classList.add('active'); }
+function setImg(i,el){ curIdx=i; const img=document.getElementById('mainImg'); if(img&&curProduct) img.src=curProduct.images[i]; document.querySelectorAll('.gallery .thumbs button').forEach(b=>b.classList.remove('active')); if(el) el.classList.add('active'); }
+function switchColour(id){ if(id===curProduct.id) return; history.replaceState(null,'','#/product/'+id); renderProduct(id); }
 function buyNow(id){ addToCart(id, selectedSize); }
 function openFit(){ location.hash='#/fit'; }
+
+/* drag-to-spin 360 scrub on the product main image */
+function bindSpin(){
+  const el=document.getElementById('spin'); if(!el||!curProduct) return;
+  const images=curProduct.images;
+  const img=document.getElementById('mainImg');
+  let dragging=false, startX=0, base=0;
+  const hl=n=>{ document.querySelectorAll('.gallery .thumbs button').forEach((b,i)=>{ b.classList.toggle('active',i===n); b.scrollIntoView({block:'nearest',inline:'nearest'}); }); };
+  el.style.cursor='ew-resize';
+  el.addEventListener('pointerdown',e=>{ dragging=true; startX=e.clientX; base=curIdx; el.setPointerCapture&&el.setPointerCapture(e.pointerId); el.classList.add('spinning'); });
+  el.addEventListener('pointermove',e=>{ if(!dragging)return; const dx=e.clientX-startX; const ni=Math.max(0,Math.min(images.length-1, base-Math.round(dx/16))); if(ni!==curIdx){ curIdx=ni; img.src=images[ni]; hl(ni); } });
+  const stop=()=>{ if(dragging){ dragging=false; el.classList.remove('spinning'); } };
+  el.addEventListener('pointerup',stop); el.addEventListener('pointercancel',stop); el.addEventListener('pointerleave',stop);
+}
 
 /* ============================================================
    fit studio — on-device foot scan (personalised sizing)

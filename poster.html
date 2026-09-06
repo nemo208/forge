@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>FORGE Poster</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1200px;height:1600px;overflow:hidden}
+  body{
+    font-family:'Microsoft YaHei','PingFang SC','Segoe UI',sans-serif;
+    background:#f6f2ea;color:#17150f;
+  }
+  .poster{width:1200px;height:1600px;display:flex;flex-direction:column;padding:46px 56px 40px;overflow:hidden}
+  /* top bar */
+  .topbar{display:flex;justify-content:space-between;align-items:center;font-size:15px;color:#6b665b;letter-spacing:.04em;flex:0 0 auto}
+  .chip{background:#17150f;color:#f6f2ea;font-weight:700;padding:7px 16px;border-radius:30px;font-size:14px;letter-spacing:.05em}
+  /* brand */
+  .brand{flex:0 0 auto;margin-top:26px}
+  .wordmark{font-size:140px;font-weight:800;letter-spacing:.01em;line-height:.92;color:#17150f}
+  .wordmark .amp{color:#a8501f}
+  .tag{display:flex;justify-content:space-between;align-items:baseline;margin-top:18px;border-top:2px solid #17150f;padding-top:14px}
+  .tag .en{font-size:29px;font-weight:700;letter-spacing:.01em}
+  .tag .cn{font-size:23px;color:#a8501f;font-weight:700}
+  .subline{margin-top:12px;font-size:19px;color:#6b665b;display:flex;gap:16px;align-items:center}
+  .subline b{color:#17150f;font-weight:700}
+  .subline .dot{color:#a8501f;font-weight:800}
+  /* hero */
+  .hero{flex:0 0 auto;display:flex;gap:24px;margin-top:30px;height:430px}
+  .hero .img{flex:1.15;background:#e9e2d4;border-radius:14px;overflow:hidden;border:1px solid #e2dac8;height:100%}
+  .hero .img img{width:100%;height:100%;object-fit:cover;display:block}
+  .hero .colors{flex:.85;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:14px}
+  .swatch{background:#fff;border:1px solid #e2dac8;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+  .swatch .ph{flex:1;overflow:hidden;background:#f2ede2;min-height:0}
+  .swatch .ph img{width:100%;height:100%;object-fit:cover;display:block}
+  .swatch .lb{padding:9px 12px;font-size:13px;color:#6b665b;border-top:1px solid #eee7d8;display:flex;justify-content:space-between;letter-spacing:.03em;flex:0 0 auto}
+  .swatch .lb b{color:#17150f}
+  /* points */
+  .points{flex:0 0 auto;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:16px;margin-top:28px}
+  .point{background:#fff;border:1px solid #e2dac8;border-radius:12px;padding:18px 22px}
+  .point .k{font-size:21px;font-weight:800;letter-spacing:.01em;display:flex;align-items:center;gap:12px}
+  .point .k .ic{width:34px;height:34px;border-radius:9px;background:#a8501f;color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+  .point .cn{font-size:15px;color:#17150f;margin-top:7px;font-weight:600}
+  .point .en{font-size:13px;color:#6b665b;margin-top:2px}
+  /* innovation */
+  .innov{flex:0 0 auto;margin-top:24px;background:#17150f;color:#f6f2ea;border-radius:14px;padding:20px 28px;display:flex;align-items:center;gap:22px}
+  .innov .badge{font-size:13px;font-weight:700;color:#17150f;background:#a8501f;padding:8px 14px;border-radius:30px;white-space:nowrap}
+  .innov .txt{font-size:20px;font-weight:700;line-height:1.4}
+  .innov .txt .en{display:block;font-size:14px;font-weight:400;color:#cfc7b6;margin-top:3px}
+  /* footer */
+  .foot{margin-top:auto;flex:0 0 auto;display:flex;align-items:center;gap:30px;border-top:2px solid #17150f;padding-top:24px}
+  .foot .meta{flex:1}
+  .foot .team{font-size:30px;font-weight:800;letter-spacing:.01em}
+  .foot .team small{font-size:15px;color:#6b665b;font-weight:600;margin-left:10px}
+  .foot .url{font-size:18px;color:#a8501f;font-weight:700;margin-top:6px;letter-spacing:.02em}
+  .foot .qr{display:flex;align-items:center;gap:16px;background:#fff;border:1px solid #e2dac8;border-radius:14px;padding:14px 18px}
+  .foot .qr img{width:132px;height:132px;object-fit:contain;border-radius:6px}
+  .foot .qr .lab{font-size:15px;font-weight:700;line-height:1.5;color:#17150f}
+  .foot .qr .lab small{display:block;font-weight:400;color:#6b665b;font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="poster">
+  <div class="topbar">
+    <span>极限出海 · 24小时实战营&nbsp;&nbsp;|&nbsp;&nbsp;24-Hour Global Launch Hackathon</span>
+    <span class="chip">#wkuhack2026</span>
+  </div>
+
+  <div class="brand">
+    <div class="wordmark">FOR<span class="amp">GE</span></div>
+    <div class="tag">
+      <span class="en">The everyday boot, forged to last.</span>
+      <span class="cn">一双经得起日常的靴子</span>
+    </div>
+    <div class="subline">
+      <b>从白牌鞋厂到海外 DTC 品牌</b>
+      <span class="dot">·</span>
+      <span>From white-label factory to a real DTC brand</span>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="img"><img src="img/black-main.jpg" alt="FORGE The Original boot"></div>
+    <div class="colors">
+      <div class="swatch"><div class="ph"><img src="img/brown-main.jpg" alt="Saddle"></div><div class="lb"><b>Black</b><span>14534-H</span></div></div>
+      <div class="swatch"><div class="ph"><img src="img/patent-main.jpg" alt="Onyx"></div><div class="lb"><b>Onyx</b><span>11295-J</span></div></div>
+      <div class="swatch"><div class="ph"><img src="img/red-main.jpg" alt="Redwood"></div><div class="lb"><b>Redwood</b><span>11295-J</span></div></div>
+      <div class="swatch"><div class="ph"><img src="img/brown-white.jpg" alt="Saddle detail"></div><div class="lb"><b>Saddle</b><span>11295-J</span></div></div>
+    </div>
+  </div>
+
+  <div class="points">
+    <div class="point"><div class="k"><span class="ic">📦</span>真实货盘 · Real stock</div><div class="cn">男靴 SKU 14534-H / 11295-J，EU 38–46</div><div class="en">Men's boots on real SKUs, unisex EU 38–46</div></div>
+    <div class="point"><div class="k"><span class="ic">🦶</span>足部扫描 · Foot scan</div><div class="cn">端侧扫描定码定内里，照片不上传</div><div class="en">On-device sizing &amp; lining match — zero upload</div></div>
+    <div class="point"><div class="k"><span class="ic">🌱</span>诚实透明 · Honest &amp; transparent</div><div class="cn">超纤·橡胶底，$69–79，成本公开</div><div class="en">Vegan microfiber · rubber sole · published cost</div></div>
+    <div class="point"><div class="k"><span class="ic">⚡</span>现货 48h · In-stock 48h</div><div class="cn">真实产线，现货直发，不玩预售</div><div class="en">Real production line, ships in 48 hours</div></div>
+  </div>
+
+  <div class="innov">
+    <span class="badge">核心创新 · Core innovation</span>
+    <div class="txt">「扫描 → 尺码 → 内里 → 颜色」个性化闭环<span class="en">Scan-to-size-to-style personalisation loop — every pair fits, and looks like you.</span></div>
+  </div>
+
+  <div class="foot">
+    <div class="meta">
+      <div class="team">TripleO<small>· 参赛团队 / Team</small></div>
+      <div class="url">nemo208.github.io/forge</div>
+    </div>
+    <div class="qr">
+      <img src="img/qr-code.png" alt="二维码">
+      <div class="lab">扫码进入品牌站<small>Scan to visit the store</small></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
